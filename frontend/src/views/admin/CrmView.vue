@@ -61,6 +61,7 @@
                 <span :class="c.is_active ? 'text-green-500' : 'text-red-500'">{{ c.is_active ? 'Active' : 'Inactive' }}</span>
               </td>
               <td class="px-4 py-3">
+                <button @click="showMapping(c.id as string)" class="text-blue-500 hover:text-blue-700 text-xs mr-2">Mapping</button>
                 <button @click="handleDisconnect(c.id as string)" class="text-red-500 hover:text-red-700 text-xs">Disconnect</button>
               </td>
             </tr>
@@ -106,6 +107,24 @@
         <p class="text-sm text-gray-400 p-3 border-t border-gray-100 dark:border-gray-800">Total: {{ total }} entries</p>
       </div>
     </template>
+
+    <div v-if="mappingConnId" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="mappingConnId = ''">
+      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 p-6 max-w-md w-full mx-4">
+        <h3 class="text-lg font-semibold mb-3">Field Mapping</h3>
+        <p class="text-xs text-gray-500 mb-3">Map MandateFinder fields to CRM fields.</p>
+        <div v-for="(_, idx) in mappingEntries" :key="idx" class="flex gap-2 mb-2">
+          <input v-model="mappingEntries[idx].from" placeholder="MF field" class="flex-1 px-2 py-1 border rounded text-sm dark:bg-gray-800 dark:border-gray-700 font-mono text-xs" />
+          <span class="self-center text-gray-400">→</span>
+          <input v-model="mappingEntries[idx].to" placeholder="CRM field" class="flex-1 px-2 py-1 border rounded text-sm dark:bg-gray-800 dark:border-gray-700 font-mono text-xs" />
+          <button @click="mappingEntries.splice(idx, 1)" class="text-red-500 text-xs self-center">✕</button>
+        </div>
+        <button @click="mappingEntries.push({ from: '', to: '' })" class="text-blue-500 text-xs mb-3">+ Add mapping</button>
+        <div class="flex gap-2 justify-end">
+          <button @click="mappingConnId = ''" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm">Cancel</button>
+          <button @click="saveMapping" class="px-3 py-1 bg-blue-600 text-white rounded text-sm">Save</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -120,6 +139,8 @@ const history = ref<Record<string, unknown>[]>([]);
 const total = ref(0);
 const newCrmType = ref("pipedrive");
 const newApiToken = ref("");
+const mappingConnId = ref("");
+const mappingEntries = ref<{ from: string; to: string }[]>([]);
 
 function fmt(d: string) { return new Date(d).toLocaleString(); }
 
@@ -164,6 +185,23 @@ async function toggleSync(id: string, enabled: boolean) {
 
 async function handleRetry() {
   try { await api.retryFailedSyncs(); await fetchHistory(); await fetchConnections(); }
+  catch (e) { console.error(e); }
+}
+
+async function showMapping(id: string) {
+  mappingConnId.value = id;
+  const c = connections.value.find(c => c.id === id);
+  const fm = (c?.field_mapping as Record<string, string> | undefined) || {};
+  mappingEntries.value = Object.entries(fm).map(([k, v]) => ({ from: k, to: v }));
+  if (!mappingEntries.value.length) mappingEntries.value = [{ from: '', to: '' }];
+}
+
+async function saveMapping() {
+  const fm: Record<string, string> = {};
+  for (const e of mappingEntries.value) {
+    if (e.from.trim() && e.to.trim()) fm[e.from.trim()] = e.to.trim();
+  }
+  try { await api.updateFieldMapping(mappingConnId.value, fm); mappingConnId.value = ''; await fetchConnections(); }
   catch (e) { console.error(e); }
 }
 

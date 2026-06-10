@@ -162,6 +162,26 @@ async def disconnect(cid: str, _ak: Any = Depends(authenticated_api_key), s: Asy
     await s.commit()
 
 
+class ReconnectReq(BaseModel):
+    authorization_code: str
+
+
+@router.post("/connections/{cid}/reconnect")
+async def reconnect(cid: str, body: ReconnectReq, _ak: Any = Depends(authenticated_api_key), s: AsyncSession = Depends(get_session)):
+    c = await _get_conn(cid, "default", s)
+    if c.crm_type == CRMType.PIPEDRIVE.value:
+        raise HTTPException(HTTP_400_BAD_REQUEST, detail="Pipedrive uses API tokens, not OAuth")
+    d = await _exchange(c.crm_type, body.authorization_code)
+    c.encrypted_access_token = encrypt_token(d["access_token"])
+    if "refresh_token" in d:
+        c.encrypted_refresh_token = encrypt_token(d["refresh_token"])
+    if c.crm_type == CRMType.SALESFORCE.value and "instance_url" in d:
+        c.instance_url = d["instance_url"]
+    c.is_active = True
+    await s.commit()
+    return {"status": "ok", "crm_type": c.crm_type}
+
+
 @router.put("/connections/{cid}/field-mapping")
 async def update_fm(cid: str, body: FMUpdate, _ak: Any = Depends(authenticated_api_key), s: AsyncSession = Depends(get_session)):
     c = await _get_conn(cid, "default", s)
