@@ -9,3 +9,6 @@ __pycache__/
 .symphony/
 *.db
 .env
+frontend/node_modules/
+frontend/dist/
+frontend/.nuxt/
