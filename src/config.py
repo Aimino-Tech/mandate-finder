@@ -27,6 +27,16 @@ class Settings(BaseSettings):
 
     app_data_dir: str = "./data"
 
+    crm_encryption_key: str = ""
+    crm_state_secret: str = "change-me-crm-state"
+    hubspot_client_id: str = ""
+    hubspot_client_secret: str = ""
+    hubspot_redirect_uri: str = "http://localhost:8000/api/v1/crm/hubspot/callback"
+    pipedrive_redirect_uri: str = "http://localhost:8000/api/v1/crm/pipedrive/callback"
+    salesforce_client_id: str = ""
+    salesforce_client_secret: str = ""
+    salesforce_redirect_uri: str = "http://localhost:8000/api/v1/crm/salesforce/callback"
+
     model_config = {"env_prefix": "MF_", "env_file": ".env"}
 
 
