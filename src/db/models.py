@@ -53,6 +53,56 @@ class Webhook(Base):
     deliveries: Mapped[list[WebhookDelivery]] = relationship("WebhookDelivery", back_populates="webhook", cascade="all, delete-orphan")
 
 
+class ConsentRecord(Base):
+    __tablename__ = "consent_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    user_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    purpose: Mapped[str] = mapped_column(String(64), nullable=False)
+    granted_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    ip_address: Mapped[str] = mapped_column(String(45), nullable=False)
+    user_agent: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+
+class DeletionRequest(Base):
+    __tablename__ = "deletion_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    user_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    reason: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="pending")
+    requested_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    deleted_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+
+class CompanyOptOut(Base):
+    __tablename__ = "company_opt_outs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    company_domain: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    company_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    contact_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    reason: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    registered_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    is_active: Mapped[bool] = mapped_column(default=True)
+
+
+class DataRetentionLog(Base):
+    __tablename__ = "data_retention_logs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    data_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    record_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    action: Mapped[str] = mapped_column(String(32), nullable=False)
+    reason: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    performed_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
+    triggered_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+
 class WebhookDelivery(Base):
     __tablename__ = "webhook_deliveries"
 
