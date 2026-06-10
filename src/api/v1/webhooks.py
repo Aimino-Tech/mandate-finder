@@ -13,7 +13,16 @@ from src.db.models import APIKey, Webhook, WebhookDelivery
 from src.middleware.rate_limit import authenticated_api_key
 from src.services.webhook_service import dispatch_webhook
 
-VALID_EVENTS = {"lead.match", "campaign.completed", "decisionmaker.found", "trend.alert"}
+VALID_EVENTS = {
+    "lead.match",
+    "campaign.completed",
+    "decisionmaker.found",
+    "trend.alert",
+    "deletion.completed",
+    "deletion.failed",
+    "consent.revoked",
+    "optout.registered",
+}
 
 router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
 
