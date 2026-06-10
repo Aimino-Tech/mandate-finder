@@ -232,6 +232,15 @@ async def remove_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User is not in your organization.",
         )
+
+    members = await db.execute(
+        select(OrganizationMember).where(
+            OrganizationMember.user_id == target.id
+        )
+    )
+    for member in members.scalars().all():
+        await db.delete(member)
+
     await db.delete(target)
     await db.commit()
     await write_audit_log(

@@ -70,7 +70,7 @@ async def test_user(db_session: AsyncSession, test_org: Organization) -> User:
     user = User(
         username="testuser",
         email="test@example.com",
-        propelauth_user_id="propel-test-id",
+        propelauth_user_id="local-dev-user",
         organization_id=test_org.id,
     )
     db_session.add(user)

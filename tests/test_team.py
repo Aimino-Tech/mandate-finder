@@ -135,9 +135,21 @@ async def test_change_role(
 @pytest.mark.asyncio
 async def test_viewer_cannot_invite(
     async_client: AsyncClient,
+    auth_headers: dict[str, str],
     db_session: AsyncSession,
     test_user: User,
 ) -> None:
+    result = await db_session.execute(
+        select(OrganizationMember).where(
+            OrganizationMember.user_id == test_user.id,
+            OrganizationMember.organization_id == test_user.organization_id,
+        )
+    )
+    existing = result.scalar_one_or_none()
+    if existing:
+        await db_session.delete(existing)
+        await db_session.commit()
+
     member = OrganizationMember(
         organization_id=test_user.organization_id,
         user_id=test_user.id,
@@ -146,10 +158,9 @@ async def test_viewer_cannot_invite(
     db_session.add(member)
     await db_session.commit()
 
-    headers = {"Authorization": f"Bearer {test_user.propelauth_user_id}"}
     response = await async_client.post(
         "/api/v1/users/invite",
-        headers=headers,
+        headers=auth_headers,
         json={"email": "shouldfail@test.com", "role": "member"},
     )
-    assert response.status_code in (401, 403)
+    assert response.status_code == 403

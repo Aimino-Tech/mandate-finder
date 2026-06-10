@@ -45,8 +45,13 @@ async def get_current_user(
             detail="Missing or invalid authorization header",
         )
 
-    if settings.dev_auth_enabled and token == settings.dev_auth_token:
-        return _dev_current_user()
+    if settings.dev_auth_enabled:
+        if token == settings.dev_auth_token:
+            return _dev_current_user()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid dev token",
+        )
 
     if not settings.propelauth_configured:
         raise HTTPException(
