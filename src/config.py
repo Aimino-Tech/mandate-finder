@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     compliance_cleanup_interval_hours: int = 24
     compliance_deletion_grace_days: int = 30
     compliance_avv_partner: str = "Hetzner Online GmbH (German datacenter)"
+    apollo_api_key: str = ""
+    apollo_tier: str = "free"
+
     app_data_dir: str = "./data"
 
     model_config = {"env_prefix": "MF_", "env_file": ".env"}
