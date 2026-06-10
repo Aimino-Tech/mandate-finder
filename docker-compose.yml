@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  market-intelligence:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+    restart: unless-stopped
