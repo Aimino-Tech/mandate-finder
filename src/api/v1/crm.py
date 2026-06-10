@@ -6,6 +6,7 @@ from typing import Any
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -270,12 +271,12 @@ async def sf_auth():
 
 @router.get("/hubspot/callback")
 async def hs_cb(code: str = Query(...), _s: str | None = Query(None)):
-    return {"status": "code_received", "code": code}
+    return RedirectResponse(url=f"{settings.crm_frontend_url}/admin/crm?code={code}&provider=hubspot")
 
 
 @router.get("/salesforce/callback")
 async def sf_cb(code: str = Query(...), _s: str | None = Query(None)):
-    return {"status": "code_received", "code": code}
+    return RedirectResponse(url=f"{settings.crm_frontend_url}/admin/crm?code={code}&provider=salesforce")
 
 
 async def _exchange(provider: str, code: str) -> dict[str, Any]:

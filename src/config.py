@@ -29,6 +29,7 @@ class Settings(BaseSettings):
 
     crm_encryption_key: str = ""
     crm_state_secret: str = "change-me-crm-state"
+    crm_frontend_url: str = ""
     hubspot_client_id: str = ""
     hubspot_client_secret: str = ""
     hubspot_redirect_uri: str = "http://localhost:8000/api/v1/crm/hubspot/callback"

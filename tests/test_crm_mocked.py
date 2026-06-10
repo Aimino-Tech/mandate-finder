@@ -22,14 +22,14 @@ def _resp(status: int, data: dict | None = None) -> httpx.Response:
 
 
 @pytest.fixture
-async def seed(test_session_factory: async_sessionmaker):
+async def _seed(test_session_factory: async_sessionmaker):
     async with test_session_factory() as s:
         s.add(APIKey(key_hash=hash_api_key("test-mf-key-123"), name="T", scopes=["*"], tier="agency"))
         await s.commit()
 
 
 @pytest.fixture
-def hdrs():
+def hdrs(_seed):
     return {"Authorization": "Bearer test-mf-key-123"}
 
 
@@ -45,13 +45,13 @@ async def _mk_conn(session_factory, token: str = "tok", rt: str | None = None, f
         return c.id
 
 
-async def test_401_triggers_token_refresh(client: AsyncClient, seed, hdrs, test_session_factory):
+async def test_401_triggers_token_refresh(client: AsyncClient, hdrs, test_session_factory):
     """CRM returns 401 → refresh attempted → sync logged as failure."""
     await _mk_conn(test_session_factory, "expired", "valid-refresh")
 
     mc = AsyncMock()
 
-    async def handler(method: str, url: str, **kw):
+    async def handler(*_a, **_kw):
         return _resp(401, {"error": "Unauthorized"})
 
     mc.request = AsyncMock(side_effect=handler)
@@ -63,14 +63,14 @@ async def test_401_triggers_token_refresh(client: AsyncClient, seed, hdrs, test_
     assert r.status_code == 200
 
 
-async def test_500_retry_three_times(client: AsyncClient, seed, hdrs, test_session_factory):
+async def test_500_retry_three_times(client: AsyncClient, hdrs, test_session_factory):
     """CRM returns 500 → verify 3 attempts via sync log entries."""
     await _mk_conn(test_session_factory, "tok")
 
     mc = AsyncMock()
     calls = 0
 
-    async def handler(method: str, url: str, **kw):
+    async def handler(*_a, **_kw):
         nonlocal calls
         calls += 1
         return _resp(500, {"error": "Server Error"})
@@ -90,16 +90,16 @@ async def test_500_retry_three_times(client: AsyncClient, seed, hdrs, test_sessi
         assert len(logs) >= 1
 
 
-async def test_sync_respects_field_mapping(client: AsyncClient, seed, hdrs, test_session_factory):
+async def test_sync_respects_field_mapping(client: AsyncClient, hdrs, test_session_factory):
     """Field mapping transforms fields before CRM API call."""
     await _mk_conn(test_session_factory, "tok", fm={"email": "Email", "company": "Organization"})
 
     captured: list[dict] = []
     mc = AsyncMock()
 
-    async def handler(method: str, url: str, **kw):
-        if kw.get("json"):
-            captured.append(kw["json"])
+    async def handler(*_a, **_kw):
+        if _kw.get("json"):
+            captured.append(_kw["json"])
         return _resp(200, {"data": {"id": 77}})
 
     mc.request = AsyncMock(side_effect=handler)
@@ -111,7 +111,7 @@ async def test_sync_respects_field_mapping(client: AsyncClient, seed, hdrs, test
     assert r.status_code == 200
 
 
-async def test_encrypted_token_not_plaintext(client: AsyncClient, seed, hdrs, test_session_factory):
+async def test_encrypted_token_not_plaintext(client: AsyncClient, hdrs, test_session_factory):
     """Connect → stored token is not the raw value."""
     r = await client.post("/api/v1/crm/connect", headers=hdrs,
                           json={"crm_type": "pipedrive", "api_token": "my-raw-token"})
@@ -122,7 +122,7 @@ async def test_encrypted_token_not_plaintext(client: AsyncClient, seed, hdrs, te
         assert "raw" not in c.encrypted_access_token
 
 
-async def test_reconnect_pipedrive_rejected(client: AsyncClient, seed, hdrs, test_session_factory):
+async def test_reconnect_pipedrive_rejected(client: AsyncClient, hdrs, test_session_factory):
     """Reconnect on Pipedrive returns 400."""
     cid = await _mk_conn(test_session_factory, "tok")
     r = await client.post(f"/api/v1/crm/connections/{cid}/reconnect", headers=hdrs,
@@ -130,13 +130,13 @@ async def test_reconnect_pipedrive_rejected(client: AsyncClient, seed, hdrs, tes
     assert r.status_code == 400
 
 
-async def test_reconnect_not_found(client: AsyncClient, seed, hdrs):
+async def test_reconnect_not_found(client: AsyncClient, hdrs):
     r = await client.post("/api/v1/crm/connections/nonexistent/reconnect", headers=hdrs,
                           json={"authorization_code": "code"})
     assert r.status_code == 404
 
 
-async def test_sync_history_with_filter(client: AsyncClient, seed, hdrs, test_session_factory):
+async def test_sync_history_with_filter(client: AsyncClient, hdrs, test_session_factory):
     """Sync history returns entries after a sync."""
     await _mk_conn(test_session_factory, "tok")
     await client.post("/api/v1/crm/sync", headers=hdrs, json={"lead_ids": ["h-1", "h-2"]})

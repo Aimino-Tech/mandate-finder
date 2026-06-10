@@ -24,7 +24,7 @@
           </div>
           <button @click="handleConnect"
             class="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
-            {{ newCrmType === 'pipedrive' ? 'Connect' : 'Connect (uses token field)' }}
+            {{ newCrmType === 'pipedrive' ? 'Connect' : 'Authorize via OAuth' }}
           </button>
         </div>
       </div>
@@ -161,15 +161,34 @@ async function fetchHistory() {
 
 async function handleConnect() {
   try {
-    const body: Record<string, unknown> = { crm_type: newCrmType.value };
     if (newCrmType.value === "pipedrive") {
       if (!newApiToken.value.trim()) return;
-      body.api_token = newApiToken.value.trim();
+      const body = { crm_type: "pipedrive", api_token: newApiToken.value.trim() };
+      await api.connectCRM(body);
+      newApiToken.value = "";
+      await fetchConnections();
+    } else {
+      const authUrl = newCrmType.value === "hubspot"
+        ? "/api/v1/crm/hubspot/auth-url"
+        : "/api/v1/crm/salesforce/auth-url";
+      const res = await fetch(authUrl);
+      const data = await res.json();
+      window.location.href = data.url;
     }
-    await api.connectCRM(body);
-    newApiToken.value = "";
-    await fetchConnections();
   } catch (e) { console.error(e); }
+}
+
+async function handleOAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  const provider = params.get("provider");
+  if (code && provider) {
+    try {
+      await api.connectCRM({ crm_type: provider, authorization_code: code });
+      window.history.replaceState({}, "", window.location.pathname);
+      await fetchConnections();
+    } catch (e) { console.error(e); }
+  }
 }
 
 async function handleDisconnect(id: string) {
@@ -205,6 +224,7 @@ async function saveMapping() {
   catch (e) { console.error(e); }
 }
 
+handleOAuthCallback();
 fetchConnections();
 fetchHistory();
 </script>
