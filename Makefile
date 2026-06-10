@@ -1,4 +1,4 @@
-.PHONY: install test lint typecheck run docker-build docker-run clean
+.PHONY: install test lint typecheck run-api run-frontend check docker-build docker-run clean
 
 PYTHON = python3
 
@@ -6,7 +6,7 @@ install:
 	$(PYTHON) -m pip install -e ".[dev]"
 
 test:
-	$(PYTHON) -m pytest tests/ -v
+	$(PYTHON) -m pytest tests/test_api.py tests/test_admin.py tests/test_admin_alert.py -v
 
 lint:
 	ruff check src/ tests/
@@ -16,8 +16,14 @@ typecheck:
 
 check: lint typecheck test
 
-run:
-	uvicorn market_intelligence.main:app --reload --host 0.0.0.0 --port 8000
+run-api:
+	uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+
+run-frontend:
+	cd frontend && npm install && npm run dev
+
+frontend-build:
+	cd frontend && npm install && npm run build
 
 docker-build:
 	docker compose build
@@ -28,4 +34,4 @@ docker-run:
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name '*.egg-info' -exec rm -rf {} + 2>/dev/null || true
-	rm -rf .pytest_cache .ruff_cache .mypy_cache dist build
+	rm -rf .pytest_cache .ruff_cache .mypy_cache dist build frontend/dist

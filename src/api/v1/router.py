@@ -1,11 +1,11 @@
 from fastapi import APIRouter
 
-from src.api.v1 import api_keys, compliance, webhooks
+from src.api.v1 import admin, api_keys, webhooks
 
 router = APIRouter(prefix="/v1")
 router.include_router(api_keys.router)
 router.include_router(webhooks.router)
-router.include_router(compliance.router)
+router.include_router(admin.router)
 
 
 @router.get("/me")
