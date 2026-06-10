@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-typecheck-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: mandate
+          POSTGRES_PASSWORD: mandate
+          POSTGRES_DB: mandate_finder
+        options: >-
+          --health-cmd pg_isready -U mandate -d mandate_finder
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Lint
+        run: uv run ruff check src/ tests/
+
+      - name: Type check
+        run: uv run mypy src/
+
+      - name: Test
+        run: uv run pytest tests/
+        env:
+          MANDATE_DATABASE_URL: postgresql+asyncpg://mandate:mandate@127.0.0.1:5432/mandate_finder
+          MANDATE_DATABASE_URL_SYNC: postgresql+psycopg://mandate:mandate@127.0.0.1:5432/mandate_finder
+          MANDATE_ENVIRONMENT: local
