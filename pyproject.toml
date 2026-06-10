@@ -13,15 +13,22 @@ dependencies = [
     "httpx>=0.27.0",
     "alembic>=1.13.0",
     "pyjwt>=2.8.0",
+    "taskiq>=0.11.0",
+    "taskiq-fastapi>=0.5.0",
+    "redis>=5.0.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
+    "pytest-httpx>=0.33.0",
     "httpx>=0.27.0",
     "ruff>=0.5.0",
     "mypy>=1.10.0",
+    "coverage>=7.5.0",
 ]
 
 [tool.ruff]
@@ -29,7 +36,9 @@ target-version = "py311"
 line-length = 120
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "UP", "B", "SIM"]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "ARG"]
+ignore = ["B008", "E501"]
+per-file-ignores = {"tests/*" = ["ARG002"]}
 
 [tool.ruff.format]
 quote-style = "double"
