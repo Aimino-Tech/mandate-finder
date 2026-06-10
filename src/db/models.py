@@ -4,7 +4,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.sqlite import JSON
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -19,6 +19,30 @@ def utcnow():
 
 def new_uuid():
     return str(uuid.uuid4())
+
+
+class MetricEvent(Base):
+    __tablename__ = "metric_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    metric_type: Mapped[str] = mapped_column(String(100), index=True)
+    value: Mapped[float] = mapped_column(Float)
+    source: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    labels: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now(), index=True)
+
+
+class AlertConfig(Base):
+    __tablename__ = "alert_configs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    metric_type: Mapped[str] = mapped_column(String(100), index=True)
+    condition: Mapped[str] = mapped_column(String(20))
+    threshold: Mapped[float] = mapped_column(Float)
+    window_minutes: Mapped[int] = mapped_column(default=15)
+    slack_webhook_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    enabled: Mapped[bool] = mapped_column(default=True)
+    last_triggered_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class APIKey(Base):
