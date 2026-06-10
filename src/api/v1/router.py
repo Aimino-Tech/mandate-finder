@@ -1,11 +1,15 @@
 from fastapi import APIRouter
 
-from src.api.v1 import admin, api_keys, webhooks
+from src.api.v1 import admin, api_keys, enrichment, webhooks
+from src.integrations.apollo.api import router as apollo_router
 
 router = APIRouter(prefix="/v1")
 router.include_router(api_keys.router)
 router.include_router(webhooks.router)
 router.include_router(admin.router)
+router.include_router(enrichment.router)
+router.include_router(apollo_router)
+router.include_router(enrichment.router)
 
 
 @router.get("/me")
