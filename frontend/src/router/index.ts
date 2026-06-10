@@ -6,6 +6,7 @@ import PipelineView from "@/views/admin/PipelineView.vue";
 import HealthView from "@/views/admin/HealthView.vue";
 import AlertsView from "@/views/admin/AlertsView.vue";
 import ApiKeysView from "@/views/admin/ApiKeysView.vue";
+import CrmView from "@/views/admin/CrmView.vue";
 
 const routes = [
   { path: "/admin/login", name: "Login", component: LoginView },
@@ -18,6 +19,7 @@ const routes = [
       { path: "pipeline", name: "Pipeline", component: PipelineView },
       { path: "health", name: "Health", component: HealthView },
       { path: "api-keys", name: "ApiKeys", component: ApiKeysView },
+      { path: "crm", name: "CRM", component: CrmView },
       { path: "alerts", name: "Alerts", component: AlertsView },
     ],
   },

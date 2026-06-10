@@ -44,5 +44,16 @@ export function useAdminApi() {
     updateAlert: (id: string, data: Record<string, unknown>) =>
       request(`/admin/alerts/${id}`, { method: "PUT", body: JSON.stringify(data) }) as Promise<Record<string, unknown>>,
     deleteAlert: (id: string) => requestRaw(`/admin/alerts/${id}`, { method: "DELETE" }),
+
+    getCRMConnections: () => request<Record<string, unknown>[]>("/crm/connections"),
+    connectCRM: (data: Record<string, unknown>) =>
+      request("/crm/connect", { method: "POST", body: JSON.stringify(data) }) as Promise<Record<string, unknown>>,
+    disconnectCRM: (id: string) => requestRaw(`/crm/connections/${id}`, { method: "DELETE" }),
+    updateFieldMapping: (id: string, mapping: Record<string, string>) =>
+      request(`/crm/connections/${id}/field-mapping`, { method: "PUT", body: JSON.stringify({ field_mapping: mapping }) }),
+    toggleAutoSync: (id: string, enabled: boolean) =>
+      request(`/crm/connections/${id}/auto-sync`, { method: "PUT", body: JSON.stringify({ enabled }) }),
+    retryFailedSyncs: () => request("/crm/sync/retry", { method: "POST" }) as Promise<{ results: Record<string, unknown>[] }>,
+    getSyncHistory: () => request<{ entries: Record<string, unknown>[]; total: number }>("/crm/sync-history"),
   };
 }
