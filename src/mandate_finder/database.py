@@ -4,8 +4,7 @@ from collections.abc import AsyncGenerator, Generator
 from datetime import datetime
 from typing import Any, ClassVar
 
-from sqlalchemy import DateTime, create_engine, func
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import JSON, DateTime, create_engine, func
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 from sqlalchemy.pool import NullPool
@@ -45,8 +44,8 @@ SyncSessionLocal = sessionmaker(
 
 class Base(DeclarativeBase):
     type_annotation_map: ClassVar[dict[Any, type]] = {
-        dict[str, Any]: JSONB,
-        list[Any]: JSONB,
+        dict[str, Any]: JSON,
+        list[Any]: JSON,
     }
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

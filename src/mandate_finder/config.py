@@ -42,6 +42,17 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
     ]
 
+    # ── Stripe ───────────────────────────────────────────────────────────
+    stripe_api_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_trial_days: int = 14
+    stripe_return_url: str = "http://localhost:3000/settings/billing"
+    stripe_price_ids: dict[str, str] = {
+        "solo": "",
+        "professional": "",
+        "agency": "",
+    }
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_prefix="MANDATE_",
