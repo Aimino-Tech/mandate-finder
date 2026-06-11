@@ -182,3 +182,43 @@ def ab_test(ab_db_session, ab_campaign, ab_control_variant, ab_test_variants):
         ab_db_session.add(av)
     ab_db_session.commit()
     return t
+
+
+# Competitor Insights fixtures
+import uuid
+from datetime import UTC, datetime, timedelta
+
+@pytest_asyncio.fixture
+async def company_a(db_session: AsyncSession) -> "Company":
+    from src.models.company import Company
+    c = Company(id=uuid.uuid4(), name="Siemens AG", industry="Engineering", is_private=False)
+    db_session.add(c)
+    await db_session.flush()
+    return c
+
+
+@pytest_asyncio.fixture
+async def company_b(db_session: AsyncSession) -> "Company":
+    from src.models.company import Company
+    c = Company(id=uuid.uuid4(), name="Bosch GmbH", industry="Engineering", is_private=False)
+    db_session.add(c)
+    await db_session.flush()
+    return c
+
+
+@pytest_asyncio.fixture
+async def company_c(db_session: AsyncSession) -> "Company":
+    from src.models.company import Company
+    c = Company(id=uuid.uuid4(), name="SAP SE", industry="Technology", is_private=False)
+    db_session.add(c)
+    await db_session.flush()
+    return c
+
+
+@pytest_asyncio.fixture
+async def private_company(db_session: AsyncSession) -> "Company":
+    from src.models.company import Company
+    c = Company(id=uuid.uuid4(), name="Private Corp", industry="Finance", is_private=True)
+    db_session.add(c)
+    await db_session.flush()
+    return c
