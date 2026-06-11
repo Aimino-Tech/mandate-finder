@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job:jobs xmlns:job="http://www.arbeitsagentur.de/jobboerse/jobsuche/v1/schema">
+  <job:job ref="BA-12345">
+    <job:titel>Senior React Entwickler</job:titel>
+    <job:arbeitgeber>TechCorp GmbH</job:arbeitgeber>
+    <job:ort>Berlin, Berlin</job:ort>
+    <job:kurzbeschreibung>Wir suchen einen erfahrenen React-Entwickler für unser agiles Team.</job:kurzbeschreibung>
+    <job:berufsgattung>431</job:berufsgattung>
+    <job:beschaeftigungsart>Vollzeit</job:beschaeftigungsart>
+    <job:bewerbungsURL>https://example.com/apply/BA-12345</job:bewerbungsURL>
+    <job:veroeffentlichungsdatum>2026-06-01T08:00:00+02:00</job:veroeffentlichungsdatum>
+    <job:aenderungsdatum>2026-06-05T10:30:00+02:00</job:aenderungsdatum>
+  </job:job>
+  <job:job ref="BA-67890">
+    <job:titel>Frontend Engineer (React/TypeScript)</job:titel>
+    <job:arbeitgeber>StartupXYZ AG</job:arbeitgeber>
+    <job:ort>München, Bayern</job:ort>
+    <job:kurzbeschreibung>Entwicklung moderner Webanwendungen mit React und TypeScript.</job:kurzbeschreibung>
+    <job:berufsgattung>431</job:berufsgattung>
+    <job:beschaeftigungsart>Teilzeit</job:beschaeftigungsart>
+    <job:bewerbungsURL>https://example.com/apply/BA-67890</job:bewerbungsURL>
+    <job:veroeffentlichungsdatum>2026-06-03T09:00:00+02:00</job:veroeffentlichungsdatum>
+  </job:job>
+  <job:job ref="BA-11111">
+    <job:titel>Praktikant Frontend Development</job:titel>
+    <job:arbeitgeber>WebAgency KG</job:arbeitgeber>
+    <job:ort>Hamburg, Hamburg</job:ort>
+    <job:kurzbeschreibung>Praktikumsplatz für Frontend-Entwicklung mit React-Kenntnissen.</job:kurzbeschreibung>
+    <job:berufsgattung>431</job:berufsgattung>
+    <job:beschaeftigungsart>Praktikum</job:beschaeftigungsart>
+    <job:bewerbungsURL>https://example.com/apply/BA-11111</job:bewerbungsURL>
+    <job:veroeffentlichungsdatum>2026-06-02T12:00:00+02:00</job:veroeffentlichungsdatum>
+  </job:job>
+</job:jobs>
