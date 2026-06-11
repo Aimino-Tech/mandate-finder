@@ -4,10 +4,13 @@ from collections.abc import AsyncGenerator, Generator
 from datetime import datetime
 from typing import Any, ClassVar
 
-from sqlalchemy import JSON, DateTime, create_engine, func
+from sqlalchemy import DateTime, create_engine, func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.sqlite import JSON
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 from sqlalchemy.pool import NullPool
+from sqlalchemy.sql.type_api import TypeEngine
 
 from mandate_finder.config import settings
 
@@ -42,10 +45,20 @@ SyncSessionLocal = sessionmaker(
 )
 
 
+def json_column() -> TypeEngine[Any]:
+    """Return the appropriate JSON column type for the current database.
+
+    Uses JSONB on PostgreSQL, JSON on SQLite for test compatibility.
+    """
+    if "sqlite" in settings.database_url:
+        return JSON()
+    return JSONB()
+
+
 class Base(DeclarativeBase):
     type_annotation_map: ClassVar[dict[Any, type]] = {
-        dict[str, Any]: JSON,
-        list[Any]: JSON,
+        dict[str, Any]: json_column(),
+        list[Any]: json_column(),
     }
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
