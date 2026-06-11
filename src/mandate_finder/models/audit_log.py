@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from mandate_finder.database import Base, json_column
+from mandate_finder.database import Base, JsonType
 
 
 class AuditLog(Base):
@@ -17,5 +17,5 @@ class AuditLog(Base):
     action: Mapped[str] = mapped_column(String(255))
     resource_type: Mapped[str] = mapped_column(String(255))
     resource_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    details: Mapped[dict[str, object] | None] = mapped_column(json_column(), nullable=True)
+    details: Mapped[dict[str, object] | None] = mapped_column(JsonType, nullable=True)
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)

@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from mandate_finder.api.routes import auth, insights, users
+from mandate_finder.api.routes import auth, insights, scraping, users
 from mandate_finder.api.routes.billing import router as billing_router
 from mandate_finder.api.routes.stripe_webhook import router as stripe_webhook_router
 from mandate_finder.config import settings
@@ -35,6 +35,7 @@ api_router.include_router(users.router)
 api_router.include_router(insights.router)
 api_router.include_router(billing_router)
 api_router.include_router(stripe_webhook_router)
+api_router.include_router(scraping.router)
 
 app.include_router(api_router)
 
