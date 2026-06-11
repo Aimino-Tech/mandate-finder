@@ -178,6 +178,50 @@ def _fallback_generation(content_prompt: str) -> GenerationResult:
     )
 
 
+async def _call_anthropic(system_prompt: str, content_prompt: str) -> GenerationResult:
+    import httpx
+
+    if not settings.agi_api_key:
+        return _fallback_generation(content_prompt)
+
+    start = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": settings.agi_api_key,
+                    "anthropic-version": "2023-06-01",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": settings.agi_model,
+                    "system": system_prompt,
+                    "messages": [{"role": "user", "content": content_prompt}],
+                    "temperature": settings.agi_temperature,
+                    "max_tokens": settings.agi_max_tokens,
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            elapsed_ms = int((time.monotonic() - start) * 1000)
+            content = data["content"][0]["text"]
+            raw = json.loads(content)
+            usage = data.get("usage", {})
+            return GenerationResult(
+                subject=raw.get("subject", ""),
+                body_text=raw.get("body_text", ""),
+                model=data.get("model", settings.agi_model),
+                provider="anthropic",
+                prompt_tokens=usage.get("input_tokens", 0),
+                completion_tokens=usage.get("output_tokens", 0),
+                total_tokens=usage.get("input_tokens", 0) + usage.get("output_tokens", 0),
+                latency_ms=elapsed_ms,
+            )
+    except Exception:
+        return _fallback_generation(content_prompt)
+
+
 async def generate_message(
     template_subject: str,
     template_body: str,
@@ -193,5 +237,7 @@ async def generate_message(
 
     if settings.agi_provider == "openai":
         return await _call_openai(system_prompt, content_prompt)
+    if settings.agi_provider == "anthropic":
+        return await _call_anthropic(system_prompt, content_prompt)
 
     return _fallback_generation(content_prompt)
