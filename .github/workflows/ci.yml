@@ -7,17 +7,44 @@ on:
     branches: [main]
 
 jobs:
-  quality:
+  lint-typecheck-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12"]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: mandate
+          POSTGRES_PASSWORD: mandate
+          POSTGRES_DB: mandate_finder
+        options: >-
+          --health-cmd pg_isready -U mandate -d mandate_finder
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev]"
-      - run: ruff check src/ tests/
-      - run: mypy src/ --ignore-missing-imports
-      - run: pytest tests/ -v --tb=short --ignore=tests/test_e2e.py --ignore=tests/test_export.py --ignore=tests/test_notification.py --ignore=tests/test_report_generator.py --ignore=tests/test_trend_detector.py --ignore=tests/test_early_signal_scraper.py --ignore=tests/test_industry_classifier.py
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Lint
+        run: uv run ruff check src/ tests/
+
+      - name: Type check
+        run: uv run mypy src/
+
+      - name: Test
+        run: uv run pytest tests/
+        env:
+          MANDATE_DATABASE_URL: postgresql+asyncpg://mandate:mandate@127.0.0.1:5432/mandate_finder
+          MANDATE_DATABASE_URL_SYNC: postgresql+psycopg://mandate:mandate@127.0.0.1:5432/mandate_finder
+          MANDATE_ENVIRONMENT: local

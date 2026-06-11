@@ -1,19 +1,28 @@
-version: "3.9"
 services:
   api:
     build: .
     ports:
       - "8000:8000"
-    environment:
-      - PYTHONDONTWRITEBYTECODE=1
-    restart: unless-stopped
-
-  admin-frontend:
-    image: nginx:alpine
-    ports:
-      - "3000:80"
-    volumes:
-      - ./frontend/dist:/usr/share/nginx/html:ro
+    env_file: .env
     depends_on:
-      - api
-    restart: unless-stopped
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mandate
+      POSTGRES_PASSWORD: mandate
+      POSTGRES_DB: mandate_finder
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mandate -d mandate_finder"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

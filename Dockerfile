@@ -1,12 +1,12 @@
-FROM python:3.12-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY pyproject.toml ./
-COPY src/ src/
+COPY pyproject.toml .
+RUN pip install --no-cache-dir .
 
-RUN pip install --no-cache-dir -e .
+COPY src/ src/
 
 EXPOSE 8000
 
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "mandate_finder.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
