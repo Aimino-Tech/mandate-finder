@@ -6,7 +6,9 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.compliance.consent_manager import ConsentManager
 from src.db.models import APIKey, OutreachCampaign, OutreachMessage, RecipientProfile
+from src.services.outreach.compliance import OutreachComplianceService
 from src.services.outreach.generator import PersonalizationContext, generate_message
 from src.services.outreach.templates import OutreachTemplateService
 
@@ -164,6 +166,10 @@ class CampaignService:
         template = await template_service.get(template_id) if template_id else None
         signals: list[str] = market_signals or []
 
+        compliance_service = OutreachComplianceService(self.session)
+        consent_manager = ConsentManager(self.session)
+        company_domain = campaign.target_company_domain
+
         messages: list[OutreachMessage] = []
         for recipient in recipients:
             context = PersonalizationContext(
@@ -172,11 +178,16 @@ class CampaignService:
                 recipient_title=recipient.title,
                 recipient_email=recipient.email,
                 company_name=recipient.company_name or campaign.target_company_name,
-                company_domain=recipient.company_domain or campaign.target_company_domain,
+                company_domain=company_domain or recipient.company_domain,
                 company_industry=campaign.target_industry or "",
                 motivation_reason=motivation_reason,
                 market_signals=signals,
             )
+
+            opt_out_ok = await compliance_service.check_opt_out(company_domain or recipient.company_domain)
+            user_id = recipient.id
+            has_consent = await consent_manager.has_valid_consent(user_id, "marketing") if user_id else True
+            compliance_passed = opt_out_ok and has_consent
 
             result = await generate_message(
                 template_subject=template.subject_template if template else "{{first_name}}, let's connect",
@@ -185,13 +196,18 @@ class CampaignService:
                 tone=tone or campaign.tone,
             )
 
+            body_text, body_html = compliance_service.append_disclaimer(
+                result.body_text,
+                result.body_text.replace("\n", "<br>\n"),
+            )
+
             msg = OutreachMessage(
                 campaign_id=campaign_id,
                 template_id=template.id if template else None,
                 recipient_profile_id=recipient.id,
                 subject=result.subject,
-                body_text=result.body_text,
-                body_html=result.body_text.replace("\n", "<br>\n"),
+                body_text=body_text,
+                body_html=body_html,
                 channel="email",
                 tone=tone or campaign.tone,
                 personalization_context={
@@ -206,7 +222,7 @@ class CampaignService:
                 prompt_tokens=result.prompt_tokens,
                 completion_tokens=result.completion_tokens,
                 latency_ms=result.latency_ms,
-                compliance_check_passed=False,
+                compliance_check_passed=compliance_passed,
             )
             self.session.add(msg)
             messages.append(msg)

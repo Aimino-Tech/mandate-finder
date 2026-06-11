@@ -272,3 +272,157 @@ class TestTemplatesAPI:
         resp = await client.post(f"/api/v1/outreach/campaigns/{camp_id}/approve", headers=auth_headers)
         assert resp.status_code == 200
         assert resp.json()["status"] == "approved"
+
+    async def test_send_campaign(self, client: AsyncClient, auth_headers):
+        camp_resp = await client.post(
+            "/api/v1/outreach/campaigns",
+            json={"name": "Send Camp", "target_company_name": "Siemens"},
+            headers=auth_headers,
+        )
+        camp_id = camp_resp.json()["id"]
+        template_resp = await client.post(
+            "/api/v1/outreach/templates",
+            json={"name": "Send Tpl", "subject_template": "Hi {{name}}", "body_template": "Body {{name}}"},
+            headers=auth_headers,
+        )
+        template_id = template_resp.json()["id"]
+        await client.post(
+            f"/api/v1/outreach/campaigns/{camp_id}/recipients",
+            json={"first_name": "Anna", "last_name": "S", "title": "HR", "email": "anna@siemens.com"},
+            headers=auth_headers,
+        )
+        await client.post(
+            f"/api/v1/outreach/campaigns/{camp_id}/generate",
+            json={"template_id": template_id},
+            headers=auth_headers,
+        )
+        await client.post(f"/api/v1/outreach/campaigns/{camp_id}/approve", headers=auth_headers)
+        resp = await client.post(f"/api/v1/outreach/campaigns/{camp_id}/send", headers=auth_headers)
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "active"
+        assert resp.json()["sent_count"] > 0
+
+    async def test_pause_resume_campaign(self, client: AsyncClient, auth_headers):
+        camp_resp = await client.post(
+            "/api/v1/outreach/campaigns",
+            json={"name": "Pause Camp", "target_company_name": "Siemens"},
+            headers=auth_headers,
+        )
+        camp_id = camp_resp.json()["id"]
+        template_resp = await client.post(
+            "/api/v1/outreach/templates",
+            json={"name": "Pause Tpl", "subject_template": "Hi {{n}}", "body_template": "Body {{n}}"},
+            headers=auth_headers,
+        )
+        template_id = template_resp.json()["id"]
+        await client.post(
+            f"/api/v1/outreach/campaigns/{camp_id}/recipients",
+            json={"first_name": "Max", "last_name": "M", "title": "HR", "email": "max@siemens.com"},
+            headers=auth_headers,
+        )
+        await client.post(
+            f"/api/v1/outreach/campaigns/{camp_id}/generate",
+            json={"template_id": template_id},
+            headers=auth_headers,
+        )
+        await client.post(f"/api/v1/outreach/campaigns/{camp_id}/approve", headers=auth_headers)
+        await client.post(f"/api/v1/outreach/campaigns/{camp_id}/send", headers=auth_headers)
+        pause_resp = await client.post(f"/api/v1/outreach/campaigns/{camp_id}/pause", headers=auth_headers)
+        assert pause_resp.status_code == 200
+        assert pause_resp.json()["status"] == "paused"
+        resume_resp = await client.post(f"/api/v1/outreach/campaigns/{camp_id}/resume", headers=auth_headers)
+        assert resume_resp.status_code == 200
+        assert resume_resp.json()["status"] == "active"
+
+
+class TestComplianceIntegration:
+    async def test_compliance_disclaimer_appended(self, test_session_factory: async_sessionmaker):
+        from src.services.outreach.compliance import OutreachComplianceService
+        async with test_session_factory() as session:
+            service = OutreachComplianceService(session)
+            body_text, body_html = service.append_disclaimer("Hello", "Hello")
+            assert "§7 UWG" in body_text
+            assert "§7 UWG" in body_html
+            assert body_text.startswith("Hello")
+
+    async def test_check_opt_out_not_opted(self, test_session_factory: async_sessionmaker):
+        from src.services.outreach.compliance import OutreachComplianceService
+        async with test_session_factory() as session:
+            service = OutreachComplianceService(session)
+            result = await service.check_opt_out("nonexistent-company.com")
+            assert result is True
+
+    async def test_check_opt_out_opted(self, test_session_factory: async_sessionmaker):
+        from src.compliance.consent_manager import ConsentManager
+        from src.services.outreach.compliance import OutreachComplianceService
+        async with test_session_factory() as session:
+            manager = ConsentManager(session)
+            await manager.register_opt_out(company_domain="opted-out.com")
+            service = OutreachComplianceService(session)
+            result = await service.check_opt_out("opted-out.com")
+            assert result is False
+
+    async def test_compliance_check_passed(self, test_session_factory: async_sessionmaker):
+        from src.services.outreach.compliance import OutreachComplianceService
+        async with test_session_factory() as session:
+            service = OutreachComplianceService(session)
+            result = await service.check_compliance(
+                company_domain="example.com",
+                recipient_email="test@example.com",
+            )
+            assert result.passed is True
+            assert result.opt_out_checked is True
+
+    async def test_compliance_check_blocked_by_opt_out(self, test_session_factory: async_sessionmaker):
+        from src.compliance.consent_manager import ConsentManager
+        from src.services.outreach.compliance import OutreachComplianceService
+        async with test_session_factory() as session:
+            manager = ConsentManager(session)
+            await manager.register_opt_out(company_domain="blocked.de")
+            service = OutreachComplianceService(session)
+            result = await service.check_compliance(company_domain="blocked.de")
+            assert result.passed is False
+            assert len(result.issues) > 0
+            assert "opt-out" in result.issues[0].lower()
+
+
+class TestDeliveryTracking:
+    async def test_campaign_delivery_status(self, test_session_factory: async_sessionmaker):
+        from src.services.outreach.campaign import CampaignService
+        from src.core.security import hash_api_key
+        async with test_session_factory() as session:
+            key_hash = hash_api_key("del-test-key")
+            key = APIKey(key_hash=key_hash, name="Del Test", tier="solo")
+            session.add(key)
+            await session.commit()
+            await session.refresh(key)
+            service = CampaignService(session)
+            campaign = await service.create(api_key_id=key.id, name="Del Camp", target_company_name="DelCo")
+            await service.add_recipient(
+                campaign_id=campaign.id, first_name="Max", last_name="M", title="HR",
+                email="max@delco.com", company_name="DelCo",
+            )
+            assert await service.approve_messages(campaign.id) is True
+
+    async def test_send_updates_count(self, test_session_factory: async_sessionmaker):
+        from src.services.outreach.campaign import CampaignService
+        from src.core.security import hash_api_key
+        async with test_session_factory() as session:
+            key_hash = hash_api_key("send-count-key")
+            key = APIKey(key_hash=key_hash, name="Send Count", tier="solo")
+            session.add(key)
+            await session.commit()
+            await session.refresh(key)
+            service = CampaignService(session)
+            campaign = await service.create(api_key_id=key.id, name="Send Count", target_company_name="SCo")
+            await service.add_recipient(
+                campaign_id=campaign.id, first_name="Lena", last_name="M", title="HR",
+                email="lena@sco.com", company_name="SCo",
+            )
+            await service.generate_messages(campaign.id)
+            await service.approve_messages(campaign.id)
+            assert await service.send_messages(campaign.id) is True
+            updated = await service.get(campaign.id)
+            assert updated is not None
+            assert updated.status == "active"
+            assert updated.sent_count == 1
