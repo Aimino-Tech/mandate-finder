@@ -144,3 +144,136 @@ class WebhookDelivery(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
 
     webhook: Mapped[Webhook] = relationship("Webhook", back_populates="deliveries")
+
+
+class OutreachTemplate(Base):
+    __tablename__ = "outreach_templates"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    channel: Mapped[str] = mapped_column(String(32), default="email")
+    subject_template: Mapped[str] = mapped_column(Text, nullable=False)
+    body_template: Mapped[str] = mapped_column(Text, nullable=False)
+    variables_schema: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    tone: Mapped[str] = mapped_column(String(32), default="professional")
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow, server_default=func.now())
+
+
+class RecipientProfile(Base):
+    __tablename__ = "recipient_profiles"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    campaign_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("outreach_campaigns.id"), nullable=True)
+    source_enrichment_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    first_name: Mapped[str] = mapped_column(String(128), default="")
+    last_name: Mapped[str] = mapped_column(String(128), default="")
+    title: Mapped[str] = mapped_column(String(255), default="")
+    email: Mapped[str] = mapped_column(String(255), default="")
+    phone: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    linkedin_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    company_name: Mapped[str] = mapped_column(String(255), default="")
+    company_domain: Mapped[str] = mapped_column(String(255), default="")
+    confidence_score: Mapped[float] = mapped_column(Float, default=0.0)
+    raw_data: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
+
+
+class OutreachCampaign(Base):
+    __tablename__ = "outreach_campaigns"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    api_key_id: Mapped[str] = mapped_column(String(36), ForeignKey("api_keys.id"), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    target_company_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    target_company_domain: Mapped[str] = mapped_column(String(255), default="")
+    target_industry: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    tone: Mapped[str] = mapped_column(String(32), default="professional")
+    status: Mapped[str] = mapped_column(String(32), default="draft")
+    total_messages: Mapped[int] = mapped_column(Integer, default=0)
+    sent_count: Mapped[int] = mapped_column(Integer, default=0)
+    opened_count: Mapped[int] = mapped_column(Integer, default=0)
+    replied_count: Mapped[int] = mapped_column(Integer, default=0)
+    bounced_count: Mapped[int] = mapped_column(Integer, default=0)
+    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow, server_default=func.now())
+
+
+class OutreachMessage(Base):
+    __tablename__ = "outreach_messages"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    campaign_id: Mapped[str] = mapped_column(String(36), ForeignKey("outreach_campaigns.id"), nullable=False)
+    template_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("outreach_templates.id"), nullable=True)
+    recipient_profile_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("recipient_profiles.id"), nullable=True)
+    subject: Mapped[str] = mapped_column(Text, default="")
+    body_text: Mapped[str] = mapped_column(Text, default="")
+    body_html: Mapped[str] = mapped_column(Text, default="")
+    channel: Mapped[str] = mapped_column(String(32), default="email")
+    tone: Mapped[str] = mapped_column(String(32), default="professional")
+    personalization_context: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="draft")
+    generated_by_model: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    token_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    prompt_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    completion_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    review_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    compliance_check_passed: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow, server_default=func.now())
+
+
+class MessageVariant(Base):
+    __tablename__ = "message_variants"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    message_id: Mapped[str] = mapped_column(String(36), ForeignKey("outreach_messages.id"), nullable=False)
+    variant_label: Mapped[str] = mapped_column(String(8), nullable=False)
+    subject: Mapped[str] = mapped_column(Text, default="")
+    body_text: Mapped[str] = mapped_column(Text, default="")
+    body_html: Mapped[str] = mapped_column(Text, default="")
+    score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    is_winner: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
+
+
+class MessageDelivery(Base):
+    __tablename__ = "message_deliveries"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    message_id: Mapped[str] = mapped_column(String(36), ForeignKey("outreach_messages.id"), nullable=False)
+    recipient_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    channel: Mapped[str] = mapped_column(String(32), default="email")
+    status: Mapped[str] = mapped_column(String(32), default="pending")
+    external_message_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    opened_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    replied_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
+
+
+class GenerationRequest(Base):
+    __tablename__ = "generation_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    message_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("outreach_messages.id"), nullable=True)
+    model: Mapped[str] = mapped_column(String(128), nullable=False)
+    provider: Mapped[str] = mapped_column(String(64), default="openai")
+    prompt_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    completion_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    total_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    latency_ms: Mapped[int] = mapped_column(Integer, default=0)
+    temperature: Mapped[float] = mapped_column(Float, default=0.7)
+    max_tokens: Mapped[int] = mapped_column(Integer, default=1024)
+    status: Mapped[str] = mapped_column(String(32), default="success")
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
