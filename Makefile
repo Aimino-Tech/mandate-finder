@@ -6,7 +6,10 @@ install:
 	$(PYTHON) -m pip install -e ".[dev]"
 
 test:
-	$(PYTHON) -m pytest tests/test_api.py tests/test_admin.py tests/test_admin_alert.py -v
+	$(PYTHON) -m pytest tests/test_api.py tests/test_admin.py tests/test_admin_alert.py tests/test_pipeline.py -v
+
+test-all:
+	$(PYTHON) -m pytest tests/ -v --tb=short
 
 lint:
 	ruff check src/ tests/
@@ -24,6 +27,9 @@ run-frontend:
 
 frontend-build:
 	cd frontend && npm install && npm run build
+
+run-pipeline-worker:
+	taskiq worker src.workers.pipeline_worker:broker
 
 docker-build:
 	docker compose build
