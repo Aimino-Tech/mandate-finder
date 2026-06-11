@@ -53,6 +53,20 @@ class Settings(BaseSettings):
         "agency": "",
     }
 
+    # -- A/B Testing settings ------------------------------------------------
+    ab_test_evaluation_interval_seconds: int = 300
+    ab_test_significance_threshold: float = 0.05
+    ab_test_min_sample_size: int = 30
+
+    # -- Reply Detection settings --------------------------------------------
+    reply_detection_poll_interval_seconds: int = 30
+    reply_detection_imap_server: str = ""
+    reply_detection_imap_port: int = 993
+    reply_detection_imap_username: str = ""
+    reply_detection_imap_password: str = ""
+    reply_detection_imap_mailbox: str = "INBOX"
+    reply_detection_webhook_secret: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_prefix="MANDATE_",
@@ -74,6 +88,10 @@ class Settings(BaseSettings):
     @property
     def demo_login_available(self) -> bool:
         return self.environment == Environment.LOCAL and not self.propelauth_configured
+
+    @property
+    def imap_configured(self) -> bool:
+        return bool(self.reply_detection_imap_server.strip())
 
 
 settings = Settings()
