@@ -42,3 +42,19 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+class ABCampaignSettings(BaseSettings):
+    database_url: str = "sqlite:///mandate_finder.db"
+    significance_threshold: float = 0.05
+    min_sample_size: int = 30
+    imap_server: str = ""
+    imap_user: str = ""
+    imap_password: str = ""
+    sendgrid_api_key: str = ""
+    sendgrid_webhook_secret: str = ""
+    polling_interval_seconds: int = 15
+
+    model_config = {"env_prefix": "MF_", "env_file": ".env"}
+
+
+ab_settings = ABCampaignSettings()
