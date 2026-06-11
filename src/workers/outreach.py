@@ -26,7 +26,7 @@ async def on_startup(state: TaskiqState) -> None:
     state.delivery_service = None
 
 
-async def on_shutdown(state: TaskiqState) -> None:
+async def on_shutdown(_state: TaskiqState) -> None:
     await engine.dispose()
 
 
