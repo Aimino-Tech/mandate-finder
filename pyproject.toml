@@ -1,7 +1,7 @@
 [project]
 name = "mandate-finder"
 version = "0.1.0"
-description = "Mandate Finder — HR Client Discovery"
+description = "Multi-Profile Search Engine — Parallel Job Discovery for HR"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",
@@ -50,6 +50,10 @@ quote-style = "double"
 python_version = "3.11"
 strict = true
 ignore_missing_imports = true
+
+[tool.setuptools.packages.find]
+include = ["mandate_finder*"]
+exclude = ["skills*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
