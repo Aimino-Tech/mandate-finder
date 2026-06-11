@@ -1,21 +1,68 @@
+"""Test configuration.
+
+All tests use SQLite (in-memory) to avoid PostgreSQL dependency.
+Includes a minimal Campaign model for FK resolution.
+Monkey-patches JSONB -> JSON for SQLite compatibility.
+"""
 from __future__ import annotations
 
+import os
 from collections.abc import AsyncGenerator
+from typing import Any
+from uuid import UUID, uuid4
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.pool import NullPool
+from sqlalchemy import JSON, NullPool, String, create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Mapped, mapped_column
+
+# Force SQLite for all tests BEFORE any mandate_finder imports
+os.environ.setdefault("MANDATE_DATABASE_URL", "sqlite+aiosqlite:///./.test_db.sqlite3")
+os.environ.setdefault("MANDATE_DATABASE_URL_SYNC", "sqlite+pysqlite:///./.test_db.sqlite3")
+os.environ.setdefault("MANDATE_DEBUG", "false")
+
+# Monkey-patch JSONB -> JSON for SQLite compatibility
+# This must happen BEFORE any imports that do `from sqlalchemy.dialects.postgresql import JSONB`
+import sqlalchemy.dialects.postgresql as _pg
+_pg.JSONB = JSON
 
 from mandate_finder.api.deps import get_db
 from mandate_finder.api.main import app
 from mandate_finder.config import settings
 from mandate_finder.database import Base
-from mandate_finder.models.organization import Organization, OrganizationMember, OrganizationRole
-from mandate_finder.models.user import User
 
-TEST_DATABASE_URL = settings.database_url
+# Override type_annotation_map for SQLite compatibility (JSONB -> JSON)
+Base.type_annotation_map = {
+    dict[str, Any]: JSON,
+    list[Any]: JSON,
+}
+
+# Import all models so they are registered with Base.metadata
+from mandate_finder.models import (  # noqa: F401, E402
+    ABTest,
+    AuditLog,
+    MessageVariant,
+    Organization,
+    OrganizationMember,
+    ReplyEvent,
+    User,
+)
+
+
+# Create a minimal Campaign model for FK resolution in tests
+class Campaign(Base):  # type: ignore[no-redef]
+    __tablename__ = "outreach_campaigns"
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    name: Mapped[str] = mapped_column(String(255), default="Test Campaign")
+
+
+# Re-override settings after imports
+settings.database_url = os.environ["MANDATE_DATABASE_URL"]
+settings.database_url_sync = os.environ["MANDATE_DATABASE_URL_SYNC"]
+
+TEST_DATABASE_URL: str = settings.database_url
 
 
 @pytest.fixture(scope="session")
@@ -29,16 +76,19 @@ async def setup_db(test_engine) -> AsyncGenerator[None, None]:
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
+    # Teardown: only delete from tables that exist
     async with test_engine.begin() as conn:
-        for table in reversed(Base.metadata.sorted_tables):
-            await conn.execute(table.delete())
-    await test_engine.dispose()
+        def delete_all(sync_conn):
+            for table in reversed(Base.metadata.sorted_tables):
+                try:
+                    sync_conn.execute(table.delete())
+                except Exception:
+                    pass  # table might not exist or be empty
+        await conn.run_sync(delete_all)
 
 
 @pytest_asyncio.fixture
 async def db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
-
     session_local = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
     async with session_local() as session:
         yield session
@@ -66,7 +116,8 @@ async def test_org(db_session: AsyncSession) -> Organization:
 
 
 @pytest_asyncio.fixture
-async def test_user(db_session: AsyncSession, test_org: Organization) -> User:
+async def test_user(db_session: AsyncSession, test_org: Organization) -> Any:
+    from mandate_finder.models.user import User
     user = User(
         username="testuser",
         email="test@example.com",
@@ -76,14 +127,6 @@ async def test_user(db_session: AsyncSession, test_org: Organization) -> User:
     db_session.add(user)
     await db_session.commit()
     await db_session.refresh(user)
-
-    member = OrganizationMember(
-        organization_id=test_org.id,
-        user_id=user.id,
-        role=OrganizationRole.ADMIN.value,
-    )
-    db_session.add(member)
-    await db_session.commit()
     return user
 
 
