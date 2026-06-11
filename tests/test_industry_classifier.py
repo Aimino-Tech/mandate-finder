@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from market_intelligence.models import Industry, JobPosting, RoleCategory
 from market_intelligence.services.industry_classifier import classify_job_posting
 

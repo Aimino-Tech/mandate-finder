@@ -22,6 +22,11 @@ VALID_EVENTS = {
     "deletion.failed",
     "consent.revoked",
     "optout.registered",
+    "outreach.sent",
+    "outreach.opened",
+    "outreach.replied",
+    "outreach.bounced",
+    "campaign.paused",
 }
 
 router = APIRouter(prefix="/webhooks", tags=["Webhooks"])

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
-from market_intelligence.models import EarlySignal, JobPosting, TrendReport, TrendPoint, TrendSeries
+
+from market_intelligence.models import EarlySignal, JobPosting, TrendPoint, TrendReport, TrendSeries
 from market_intelligence.services.notification import build_digest_email, generate_weekly_digests
 
 

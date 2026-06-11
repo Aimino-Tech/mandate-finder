@@ -1,9 +1,10 @@
 from datetime import date, datetime
-from enum import Enum
+from enum import StrEnum
+
 from pydantic import BaseModel, Field
 
 
-class Industry(str, Enum):
+class Industry(StrEnum):
     health = "health"
     finance = "finance"
     technology = "technology"
@@ -17,7 +18,7 @@ class Industry(str, Enum):
     other = "other"
 
 
-class RoleCategory(str, Enum):
+class RoleCategory(StrEnum):
     engineering = "engineering"
     sales = "sales"
     marketing = "marketing"

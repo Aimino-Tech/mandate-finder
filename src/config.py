@@ -27,6 +27,15 @@ class Settings(BaseSettings):
 
     app_data_dir: str = "./data"
 
+    agi_provider: str = "openai"
+    agi_api_key: str = ""
+    agi_model: str = "gpt-4o"
+    agi_max_tokens: int = 1024
+    agi_temperature: float = 0.7
+    agi_retry_count: int = 2
+    outreach_default_tone: str = "professional"
+    outreach_max_recipients_per_campaign: int = 100
+
     model_config = {"env_prefix": "MF_", "env_file": ".env"}
 
 

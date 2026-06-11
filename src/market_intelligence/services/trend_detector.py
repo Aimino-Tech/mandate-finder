@@ -1,8 +1,8 @@
 from collections import defaultdict
+from collections.abc import Sequence
 from datetime import date, datetime, timedelta
 from enum import Enum
 from statistics import mean
-from typing import Sequence
 
 import numpy as np
 from scipy import signal as scipy_signal
@@ -34,11 +34,11 @@ def _detect_period(detrended: np.ndarray) -> int | None:
     if n < 14:
         return None
     try:
-        f, Pxx = scipy_signal.periodogram(detrended)
+        f, pxx = scipy_signal.periodogram(detrended)
         valid = (f > 0) & (f < 0.5)
         if not valid.any():
             return None
-        peak_idx = np.argmax(Pxx[valid])
+        peak_idx = np.argmax(pxx[valid])
         peak_f = f[valid][peak_idx]
         period = int(round(1.0 / peak_f))
         return period if 3 <= period <= n // 2 else None
@@ -64,7 +64,7 @@ def compute_trend_series(postings: list[JobPosting], *, category_attr: str = "ro
         all_dates = [start + timedelta(days=i) for i in range((end - start).days + 1)]
         values = [float(daily_counts.get(d, 0)) for d in all_dates]
         trend, seasonal, residual = _decompose(values)
-        points = [TrendPoint(date=d, value=v, moving_avg=trend[i] if i < len(trend) else None, seasonal=seasonal[i] if i < len(seasonal) else None, residual=residual[i] if i < len(residual) else None) for i, (d, v) in enumerate(zip(all_dates, values))]
+        points = [TrendPoint(date=d, value=v, moving_avg=trend[i] if i < len(trend) else None, seasonal=seasonal[i] if i < len(seasonal) else None, residual=residual[i] if i < len(residual) else None) for i, (d, v) in enumerate(zip(all_dates, values, strict=False))]
         growth_rate = _growth_rate(values)
         direction = "up" if growth_rate > 0.05 else "down" if growth_rate < -0.05 else "stable"
         series_list.append(TrendSeries(category=category, points=points, growth_rate=round(growth_rate, 4), direction=direction))

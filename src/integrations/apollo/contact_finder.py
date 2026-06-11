@@ -1,18 +1,20 @@
-from typing import Any
 from src.integrations.apollo.client import ApolloClient
 from src.integrations.apollo.models import Contact
 from src.integrations.apollo.rate_limiter import TierRateLimiter
+
 
 class ContactFinder:
     def __init__(self, client=None, rate_limiter=None, api_key=""):
         self._client = client or ApolloClient(api_key=api_key)
         self._limiter = rate_limiter or TierRateLimiter("free")
+
     async def find(self, company_name, company_domain="", title_keywords=None, mock=False):
         if mock:
             return _mock_find(company_name, company_domain, title_keywords)
         async with self._limiter.throttle():
             people = await self._client.search_people(self._build_query(company_name, company_domain, title_keywords))
         return [_parse_contact(p, company_name, company_domain) for p in people]
+
     @staticmethod
     def _build_query(company_name, company_domain="", title_keywords=None):
         q = {"q_organization_name": company_name, "person_titles": title_keywords or [], "page": 1, "per_page": 25, "contact_email_status": "verified"}
@@ -31,11 +33,16 @@ def _parse_contact(person, company_name="", company_domain=""):
 
 def _compute_confidence(person):
     score = 0.0
-    if person.get("email"): score += 0.4
-    if person.get("email_status") == "verified": score += 0.2
-    if person.get("linkedin_url"): score += 0.15
-    if person.get("phone"): score += 0.1
-    if person.get("title"): score += 0.15
+    if person.get("email"):
+        score += 0.4
+    if person.get("email_status") == "verified":
+        score += 0.2
+    if person.get("linkedin_url"):
+        score += 0.15
+    if person.get("phone"):
+        score += 0.1
+    if person.get("title"):
+        score += 0.15
     return round(min(score, 1.0), 2)
 
 def _mock_find(company_name, company_domain="", title_keywords=None):

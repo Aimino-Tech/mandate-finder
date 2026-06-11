@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+
 from market_intelligence.models import EarlySignal, Industry, JobPosting, RoleCategory
 from market_intelligence.services.export import export_report
 from market_intelligence.services.industry_classifier import classify_batch

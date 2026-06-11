@@ -36,6 +36,7 @@ const router = useRouter();
 const navItems = [
   { to: "/admin/dashboard", label: "Dashboard", icon: "📊" },
   { to: "/admin/pipeline", label: "Pipeline", icon: "🔗" },
+  { to: "/admin/outreach", label: "Outreach", icon: "📤" },
   { to: "/admin/health", label: "System Health", icon: "❤️" },
   { to: "/admin/api-keys", label: "API Keys", icon: "🔑" },
   { to: "/admin/alerts", label: "Alerts", icon: "🔔" },

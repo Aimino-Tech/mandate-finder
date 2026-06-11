@@ -44,5 +44,15 @@ export function useAdminApi() {
     updateAlert: (id: string, data: Record<string, unknown>) =>
       request(`/admin/alerts/${id}`, { method: "PUT", body: JSON.stringify(data) }) as Promise<Record<string, unknown>>,
     deleteAlert: (id: string) => requestRaw(`/admin/alerts/${id}`, { method: "DELETE" }),
+    getCampaigns: () => request<Record<string, unknown>[]>("/outreach/campaigns"),
+    createCampaign: (data: Record<string, unknown>) =>
+      request("/outreach/campaigns", { method: "POST", body: JSON.stringify(data) }) as Promise<Record<string, unknown>>,
+    approveCampaign: (id: string) => request(`/outreach/campaigns/${id}/approve`, { method: "POST" }),
+    sendCampaign: (id: string) => request(`/outreach/campaigns/${id}/send`, { method: "POST" }),
+    pauseCampaign: (id: string) => request(`/outreach/campaigns/${id}/pause`, { method: "POST" }),
+    resumeCampaign: (id: string) => request(`/outreach/campaigns/${id}/resume`, { method: "POST" }),
+    getTemplates: () => request<Record<string, unknown>[]>("/outreach/templates"),
+    createTemplate: (data: Record<string, unknown>) =>
+      request("/outreach/templates", { method: "POST", body: JSON.stringify(data) }) as Promise<Record<string, unknown>>,
   };
 }

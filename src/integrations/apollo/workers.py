@@ -1,13 +1,15 @@
 import os
+
 from taskiq import TaskiqState
 from taskiq.events import TaskiqEvents
 from taskiq_aio_pika import AioPikaBroker
+
 from src.config import settings
 from src.integrations.apollo.client import ApolloClient
 from src.integrations.apollo.company_enricher import CompanyEnricher
 from src.integrations.apollo.contact_finder import ContactFinder
-from src.integrations.apollo.models import Contact, EnrichedCompany
 from src.integrations.apollo.rate_limiter import TierRateLimiter
+
 
 def _get_api_key(): return settings.apollo_api_key or os.environ.get("APOLLO_API_KEY", "")
 def _get_tier(): return settings.apollo_tier or os.environ.get("APOLLO_TIER", "free")
@@ -34,10 +36,21 @@ class ContactDiscoveryWorker:
         return await self._finder.find(company_name, company_domain, title_keywords, mock=mock)
 
 broker = AioPikaBroker(_get_amqp_url())
-async def on_startup(state: TaskiqState): state.enricher = CompanyEnrichmentWorker(); state.discoverer = ContactDiscoveryWorker()
+
+
+async def on_startup(state: TaskiqState):
+    state.enricher = CompanyEnrichmentWorker()
+    state.discoverer = ContactDiscoveryWorker()
+
+
 broker.add_event_handler(TaskiqEvents.WORKER_STARTUP, on_startup)
 
+
 @broker.task
-async def enrich_company_task(name, domain=""): return await CompanyEnrichmentWorker().enrich_company(name, domain)
+async def enrich_company_task(name: str, domain: str = ""):
+    return await CompanyEnrichmentWorker().enrich_company(name, domain)
+
+
 @broker.task
-async def find_contacts_task(company_name, company_domain="", title_keywords=None): return await ContactDiscoveryWorker().discover(company_name, company_domain, title_keywords)
+async def find_contacts_task(company_name: str, company_domain: str = "", title_keywords: list[str] | None = None):
+    return await ContactDiscoveryWorker().discover(company_name, company_domain, title_keywords)
