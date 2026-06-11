@@ -134,3 +134,47 @@ class GenerateRequest(BaseModel):
     tone: str | None = None
     motivation_reason: str = ""
     market_signals: list[str] = []
+
+
+class DeliveryResponse(BaseModel):
+    id: str
+    message_id: str
+    recipient_email: str
+    channel: str
+    status: str
+    external_message_id: str | None
+    attempt_count: int
+    error_message: str | None
+    sent_at: datetime | None
+    delivered_at: datetime | None
+    opened_at: datetime | None
+    replied_at: datetime | None
+    created_at: datetime
+
+
+class DeliveryStatsResponse(BaseModel):
+    total: int = 0
+    pending: int = 0
+    sent: int = 0
+    delivered: int = 0
+    bounced: int = 0
+    opened: int = 0
+    replied: int = 0
+    failed: int = 0
+
+
+class VariantCreate(BaseModel):
+    variant_label: str
+    subject: str
+    body_text: str
+
+
+class VariantResponse(BaseModel):
+    id: str
+    message_id: str
+    variant_label: str
+    subject: str
+    body_text: str
+    score: float | None
+    is_winner: bool
+    created_at: datetime

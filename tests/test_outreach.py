@@ -426,3 +426,105 @@ class TestDeliveryTracking:
             assert updated is not None
             assert updated.status == "active"
             assert updated.sent_count == 1
+
+    async def test_create_delivery(self, test_session_factory: async_sessionmaker):
+        from src.services.outreach.delivery import DeliveryService
+        from src.services.outreach.campaign import CampaignService
+        from src.core.security import hash_api_key
+        async with test_session_factory() as session:
+            key_hash = hash_api_key("del-svc-key")
+            key = APIKey(key_hash=key_hash, name="Del Svc", tier="solo")
+            session.add(key)
+            await session.commit()
+            await session.refresh(key)
+            camp_service = CampaignService(session)
+            campaign = await camp_service.create(api_key_id=key.id, name="Del Svc", target_company_name="DS")
+            await camp_service.add_recipient(
+                campaign_id=campaign.id, first_name="X", last_name="Y", title="HR",
+                email="x@ds.com", company_name="DS",
+            )
+            msgs = await camp_service.generate_messages(campaign.id)
+            assert len(msgs) > 0
+            msg_id = msgs[0].id
+            service = DeliveryService(session)
+            delivery = await service.create_delivery(msg_id, "recipient@test.com")
+            assert delivery is not None
+            assert delivery.status == "pending"
+            assert delivery.recipient_email == "recipient@test.com"
+
+    async def test_update_delivery_status(self, test_session_factory: async_sessionmaker):
+        from src.services.outreach.delivery import DeliveryService
+        from src.services.outreach.campaign import CampaignService
+        from src.core.security import hash_api_key
+        async with test_session_factory() as session:
+            key_hash = hash_api_key("upd-del-key")
+            key = APIKey(key_hash=key_hash, name="Upd Del", tier="solo")
+            session.add(key)
+            await session.commit()
+            await session.refresh(key)
+            camp_service = CampaignService(session)
+            campaign = await camp_service.create(api_key_id=key.id, name="Upd Del", target_company_name="UD")
+            await camp_service.add_recipient(
+                campaign_id=campaign.id, first_name="A", last_name="B", title="HR",
+                email="a@ud.com", company_name="UD",
+            )
+            msgs = await camp_service.generate_messages(campaign.id)
+            msg_id = msgs[0].id
+            service = DeliveryService(session)
+            delivery = await service.create_delivery(msg_id, "test@ud.com")
+            updated = await service.update_status(delivery.id, "sent")
+            assert updated is not None
+            assert updated.status == "sent"
+            assert updated.sent_at is not None
+
+    async def test_create_variant(self, test_session_factory: async_sessionmaker):
+        from src.services.outreach.delivery import VariantService
+        from src.services.outreach.campaign import CampaignService
+        from src.core.security import hash_api_key
+        async with test_session_factory() as session:
+            key_hash = hash_api_key("var-test-key")
+            key = APIKey(key_hash=key_hash, name="Var Test", tier="solo")
+            session.add(key)
+            await session.commit()
+            await session.refresh(key)
+            camp_service = CampaignService(session)
+            campaign = await camp_service.create(api_key_id=key.id, name="Var Test", target_company_name="VT")
+            await camp_service.add_recipient(
+                campaign_id=campaign.id, first_name="V", last_name="T", title="HR",
+                email="v@vt.com", company_name="VT",
+            )
+            msgs = await camp_service.generate_messages(campaign.id)
+            msg_id = msgs[0].id
+            service = VariantService(session)
+            variant = await service.create_variant(msg_id, "B", "Alt Subject", "Alt body")
+            assert variant is not None
+            assert variant.variant_label == "B"
+            assert variant.subject == "Alt Subject"
+
+    async def test_declare_winner(self, test_session_factory: async_sessionmaker):
+        from src.services.outreach.delivery import VariantService
+        from src.services.outreach.campaign import CampaignService
+        from src.core.security import hash_api_key
+        async with test_session_factory() as session:
+            key_hash = hash_api_key("win-test-key")
+            key = APIKey(key_hash=key_hash, name="Win Test", tier="solo")
+            session.add(key)
+            await session.commit()
+            await session.refresh(key)
+            camp_service = CampaignService(session)
+            campaign = await camp_service.create(api_key_id=key.id, name="Win Test", target_company_name="WT")
+            await camp_service.add_recipient(
+                campaign_id=campaign.id, first_name="W", last_name="T", title="HR",
+                email="w@wt.com", company_name="WT",
+            )
+            msgs = await camp_service.generate_messages(campaign.id)
+            msg_id = msgs[0].id
+            service = VariantService(session)
+            v1 = await service.create_variant(msg_id, "A", "Sub A", "Body A")
+            v2 = await service.create_variant(msg_id, "B", "Sub B", "Body B")
+            await service.score_variant(v1.id, 8.5)
+            await service.score_variant(v2.id, 9.0)
+            winner = await service.declare_winner(v2.id)
+            assert winner is not None
+            assert winner.is_winner is True
+            assert winner.variant_label == "B"

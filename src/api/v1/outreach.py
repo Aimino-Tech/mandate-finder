@@ -5,13 +5,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from src.db.database import get_session
-from src.db.models import APIKey, OutreachCampaign, OutreachMessage, OutreachTemplate, RecipientProfile
+from src.db.models import (
+    APIKey,
+    MessageDelivery,
+    MessageVariant,
+    OutreachCampaign,
+    OutreachMessage,
+    OutreachTemplate,
+    RecipientProfile,
+)
 from src.middleware.rate_limit import authenticated_api_key
 from src.services.outreach.campaign import CampaignService
+from src.services.outreach.delivery import DeliveryService, VariantService
 from src.services.outreach.schemas import (
     CampaignCreate,
     CampaignResponse,
     CampaignUpdate,
+    DeliveryResponse,
+    DeliveryStatsResponse,
     GenerateRequest,
     MessageResponse,
     OutreachTemplateCreate,
@@ -21,6 +32,8 @@ from src.services.outreach.schemas import (
     PreviewResponse,
     RecipientCreate,
     RecipientResponse,
+    VariantCreate,
+    VariantResponse,
 )
 from src.services.outreach.templates import OutreachTemplateService
 
@@ -414,3 +427,156 @@ async def resume_campaign(
     campaign = await service.get(campaign_id)
     assert campaign is not None
     return _campaign_to_response(campaign)
+
+
+def _delivery_to_response(d: MessageDelivery) -> dict:
+    return DeliveryResponse(
+        id=d.id,
+        message_id=d.message_id,
+        recipient_email=d.recipient_email,
+        channel=d.channel,
+        status=d.status,
+        external_message_id=d.external_message_id,
+        attempt_count=d.attempt_count,
+        error_message=d.error_message,
+        sent_at=d.sent_at,
+        delivered_at=d.delivered_at,
+        opened_at=d.opened_at,
+        replied_at=d.replied_at,
+        created_at=d.created_at,
+    ).model_dump()
+
+
+def _variant_to_response(v: MessageVariant) -> dict:
+    return VariantResponse(
+        id=v.id,
+        message_id=v.message_id,
+        variant_label=v.variant_label,
+        subject=v.subject,
+        body_text=v.body_text,
+        score=v.score,
+        is_winner=v.is_winner,
+        created_at=v.created_at,
+    ).model_dump()
+
+
+@router.get("/messages/{message_id}/deliveries", response_model=list[DeliveryResponse])
+async def list_message_deliveries(
+    message_id: str,
+    status: str | None = Query(None),
+    offset: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    session: AsyncSession = Depends(get_session),
+    _api_key: APIKey = Depends(authenticated_api_key),
+):
+    service = DeliveryService(session)
+    deliveries = await service.list_deliveries(message_id=message_id, status=status, offset=offset, limit=limit)
+    return [_delivery_to_response(d) for d in deliveries]
+
+
+@router.get("/messages/{message_id}/deliveries/stats", response_model=DeliveryStatsResponse)
+async def get_delivery_stats(
+    message_id: str,
+    session: AsyncSession = Depends(get_session),
+    _api_key: APIKey = Depends(authenticated_api_key),
+):
+    service = DeliveryService(session)
+    stats = await service.get_delivery_stats(message_id)
+    return DeliveryStatsResponse(**stats)
+
+
+@router.post("/messages/{message_id}/deliveries", response_model=DeliveryResponse, status_code=201)
+async def create_delivery(
+    message_id: str,
+    recipient_email: str,
+    channel: str = "email",
+    session: AsyncSession = Depends(get_session),
+    _api_key: APIKey = Depends(authenticated_api_key),
+):
+    if not recipient_email or "@" not in recipient_email:
+        raise HTTPException(HTTP_400_BAD_REQUEST, detail="Valid email is required")
+    service = DeliveryService(session)
+    delivery = await service.create_delivery(message_id=message_id, recipient_email=recipient_email, channel=channel)
+    if delivery is None:
+        raise HTTPException(HTTP_404_NOT_FOUND, detail="Message not found")
+    return _delivery_to_response(delivery)
+
+
+@router.patch("/deliveries/{delivery_id}/status", response_model=DeliveryResponse)
+async def update_delivery_status(
+    delivery_id: str,
+    status: str,
+    external_message_id: str | None = Query(None),
+    error_message: str | None = Query(None),
+    session: AsyncSession = Depends(get_session),
+    _api_key: APIKey = Depends(authenticated_api_key),
+):
+    service = DeliveryService(session)
+    delivery = await service.update_status(
+        delivery_id=delivery_id,
+        status=status,
+        external_message_id=external_message_id,
+        error_message=error_message,
+    )
+    if delivery is None:
+        raise HTTPException(HTTP_404_NOT_FOUND, detail="Delivery not found")
+    return _delivery_to_response(delivery)
+
+
+@router.post("/messages/{message_id}/variants", response_model=VariantResponse, status_code=201)
+async def create_variant(
+    message_id: str,
+    body: VariantCreate,
+    session: AsyncSession = Depends(get_session),
+    _api_key: APIKey = Depends(authenticated_api_key),
+):
+    if not body.variant_label.strip():
+        raise HTTPException(HTTP_400_BAD_REQUEST, detail="Variant label is required")
+    service = VariantService(session)
+    variant = await service.create_variant(
+        message_id=message_id,
+        variant_label=body.variant_label,
+        subject=body.subject,
+        body_text=body.body_text,
+    )
+    if variant is None:
+        raise HTTPException(HTTP_404_NOT_FOUND, detail="Message not found")
+    return _variant_to_response(variant)
+
+
+@router.get("/messages/{message_id}/variants", response_model=list[VariantResponse])
+async def list_variants(
+    message_id: str,
+    session: AsyncSession = Depends(get_session),
+    _api_key: APIKey = Depends(authenticated_api_key),
+):
+    service = VariantService(session)
+    variants = await service.list_variants(message_id)
+    return [_variant_to_response(v) for v in variants]
+
+
+@router.post("/variants/{variant_id}/score", response_model=VariantResponse)
+async def score_variant(
+    variant_id: str,
+    score: float,
+    session: AsyncSession = Depends(get_session),
+    _api_key: APIKey = Depends(authenticated_api_key),
+):
+    service = VariantService(session)
+    variant = await service.score_variant(variant_id, score)
+    if variant is None:
+        raise HTTPException(HTTP_404_NOT_FOUND, detail="Variant not found")
+    return _variant_to_response(variant)
+
+
+@router.post("/variants/{variant_id}/declare-winner", response_model=VariantResponse)
+async def declare_winner(
+    variant_id: str,
+    session: AsyncSession = Depends(get_session),
+    _api_key: APIKey = Depends(authenticated_api_key),
+):
+    service = VariantService(session)
+    variant = await service.declare_winner(variant_id)
+    if variant is None:
+        raise HTTPException(HTTP_404_NOT_FOUND, detail="Variant not found")
+    return _variant_to_response(variant)
