@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suche-ergebnis>
+  <list>
+    <ergebnis>
+      <refnr>BA-100001-ABCD</refnr>
+      <titel>Senior React Entwickler</titel>
+      <arbeitgeber>TechCorp GmbH</arbeitgeber>
+      <ort>Berlin</ort>
+      <region>Berlin</region>
+      <beschreibung>
+        Wir suchen einen erfahrenen Senior React Entwickler für unser Team in Berlin.
+        Aufgaben: Entwicklung moderner Webanwendungen, Code-Reviews, Architektur-Entscheidungen.
+        Anforderungen: 5+ Jahre Erfahrung mit React, TypeScript, Node.js.
+      </beschreibung>
+      <berufscode>43103</berufscode>
+      <art>1</art>
+      <aktuelleVeroeffentlichungsdatum>2026-06-10T08:00:00</aktuelleVeroeffentlichungsdatum>
+      <link>https://example.com/jobs/BA-100001-ABCD</link>
+      <vergutung>
+        <minValue>65000</minValue>
+        <maxValue>95000</maxValue>
+        <currency>EUR</currency>
+      </vergutung>
+    </ergebnis>
+    <ergebnis>
+      <refnr>BA-100002-EFGH</refnr>
+      <titel>Full Stack Developer (React/Python)</titel>
+      <arbeitgeber>DigitalSolutions AG</arbeitgeber>
+      <ort>München</ort>
+      <region>Bayern</region>
+      <beschreibung>
+        Full Stack Developer gesucht für spannende Projekte im Bereich Digitalisierung.
+        Tech Stack: React, Python, PostgreSQL, Docker.
+      </beschreibung>
+      <berufscode>43102</berufscode>
+      <art>1</art>
+      <aktuelleVeroeffentlichungsdatum>2026-06-09T10:30:00</aktuelleVeroeffentlichungsdatum>
+      <link>https://example.com/jobs/BA-100002-EFGH</link>
+      <vergutung>
+        <minValue>55000</minValue>
+        <maxValue>85000</maxValue>
+        <currency>EUR</currency>
+      </vergutung>
+    </ergebnis>
+    <ergebnis>
+      <refnr>BA-100003-IJKL</refnr>
+      <titel>Backend Ingenieur (Node.js)</titel>
+      <arbeitgeber>StartupXYZ</arbeitgeber>
+      <ort>Hamburg</ort>
+      <region>Hamburg</region>
+      <beschreibung>
+        Backend Ingenieur für unser schnell wachsendes Startup.
+        Schwerpunkt: Node.js, Microservices, AWS.
+      </beschreibung>
+      <berufscode>43104</berufscode>
+      <art>2</art>
+      <aktuelleVeroeffentlichungsdatum>2026-06-08T14:00:00</aktuelleVeroeffentlichungsdatum>
+      <link>https://example.com/jobs/BA-100003-IJKL</link>
+      <vergutung>
+        <minValue>45000</minValue>
+        <maxValue>70000</maxValue>
+        <currency>EUR</currency>
+      </vergutung>
+    </ergebnis>
+    <ergebnis>
+      <refnr>BA-100004-MNOP</refnr>
+      <titel>DevOps Engineer (Kubernetes)</titel>
+      <arbeitgeber>CloudNative GmbH</arbeitgeber>
+      <ort>Köln</ort>
+      <region>Nordrhein-Westfalen</region>
+      <beschreibung>
+        DevOps Engineer für unsere Cloud-Infrastruktur. Erfahrung mit Kubernetes, Terraform, CI/CD.
+      </beschreibung>
+      <berufscode>43114</berufscode>
+      <art>1</art>
+      <aktuelleVeroeffentlichungsdatum>2026-06-07T09:00:00</aktuelleVeroeffentlichungsdatum>
+      <link>https://example.com/jobs/BA-100004-MNOP</link>
+      <vergutung>
+        <minValue>60000</minValue>
+        <maxValue>90000</maxValue>
+        <currency>EUR</currency>
+      </vergutung>
+    </ergebnis>
+    <ergebnis>
+      <refnr>BA-100005-QRST</refnr>
+      <titel>Data Scientist (Machine Learning)</titel>
+      <arbeitgeber>AI Innovations UG</arbeitgeber>
+      <ort>Frankfurt</ort>
+      <region>Hessen</region>
+      <beschreibung>
+        Data Scientist mit Fokus auf Machine Learning und NLP.
+        Python, TensorFlow, PyTorch, SQL.
+      </beschreibung>
+      <berufscode>43112</berufscode>
+      <art>1</art>
+      <aktuelleVeroeffentlichungsdatum>2026-06-06T11:00:00</aktuelleVeroeffentlichungsdatum>
+      <link>https://example.com/jobs/BA-100005-QRST</link>
+      <vergutung>
+        <minValue>70000</minValue>
+        <maxValue>110000</maxValue>
+        <currency>EUR</currency>
+      </vergutung>
+    </ergebnis>
+  </list>
+</suche-ergebnis>

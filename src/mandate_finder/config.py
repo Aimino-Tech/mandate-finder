@@ -42,6 +42,10 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
     ]
 
+    # Bundesagentur für Arbeit API settings
+    ba_api_key: str = ""
+    ba_api_base_url: str = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_prefix="MANDATE_",
@@ -49,7 +53,7 @@ class Settings(BaseSettings):
     )
 
     @model_validator(mode="after")
-    def _auth_safety_for_environment(self) -> Settings:
+    def _auth_safety_for_environment(self) -> "Settings":
         if self.environment != Environment.LOCAL:
             object.__setattr__(self, "dev_auth_enabled", False)
         elif not self.propelauth_api_key.strip():
@@ -63,6 +67,10 @@ class Settings(BaseSettings):
     @property
     def demo_login_available(self) -> bool:
         return self.environment == Environment.LOCAL and not self.propelauth_configured
+
+    @property
+    def ba_configured(self) -> bool:
+        return bool(self.ba_api_key.strip())
 
 
 settings = Settings()
