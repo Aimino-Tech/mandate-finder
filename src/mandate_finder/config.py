@@ -53,6 +53,13 @@ class Settings(BaseSettings):
         "agency": "",
     }
 
+    # ── Scrap / Hermes Agent ────────────────────────────────────────────
+    hermes_api_url: str = "https://api.hermes-ai.com/v1"
+    hermes_api_key: str = ""
+    hermes_model: str = "hermes-2-pro"
+    scrap_default_rate_limit: int = 30
+    scrap_health_check_interval_minutes: int = 15
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_prefix="MANDATE_",

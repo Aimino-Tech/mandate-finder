@@ -15,7 +15,10 @@ from mandate_finder.database import Base
 from mandate_finder.models.organization import Organization, OrganizationMember, OrganizationRole
 from mandate_finder.models.user import User
 
+# Use a shared in-memory database so connections share the same data
 TEST_DATABASE_URL = settings.database_url
+if TEST_DATABASE_URL.startswith("sqlite"):
+    TEST_DATABASE_URL = "sqlite+aiosqlite:///file::memory:?cache=shared"
 
 
 @pytest.fixture(scope="session")
@@ -29,10 +32,10 @@ async def setup_db(test_engine) -> AsyncGenerator[None, None]:
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
+    # Clean up after each test
     async with test_engine.begin() as conn:
         for table in reversed(Base.metadata.sorted_tables):
             await conn.execute(table.delete())
-    await test_engine.dispose()
 
 
 @pytest_asyncio.fixture
