@@ -17,7 +17,7 @@ jobs:
           POSTGRES_PASSWORD: mandate
           POSTGRES_DB: mandate_finder
         options: >-
-          --health-cmd pg_isready -U mandate -d mandate_finder
+          --health-cmd "pg_isready -U mandate -d mandate_finder"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
