@@ -367,6 +367,7 @@ async def approve_campaign(
     if not success:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="Campaign not found")
     campaign = await service.get(campaign_id)
+    assert campaign is not None
     return _campaign_to_response(campaign)
 
 
@@ -381,6 +382,7 @@ async def send_campaign(
     if not success:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="Campaign not found")
     campaign = await service.get(campaign_id)
+    assert campaign is not None
     return _campaign_to_response(campaign)
 
 
@@ -395,6 +397,7 @@ async def pause_campaign(
     if not success:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="Campaign not found or not active")
     campaign = await service.get(campaign_id)
+    assert campaign is not None
     return _campaign_to_response(campaign)
 
 
@@ -409,4 +412,5 @@ async def resume_campaign(
     if not success:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="Campaign not found or not paused")
     campaign = await service.get(campaign_id)
+    assert campaign is not None
     return _campaign_to_response(campaign)
