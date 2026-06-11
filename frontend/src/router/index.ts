@@ -6,6 +6,7 @@ import PipelineView from "@/views/admin/PipelineView.vue";
 import HealthView from "@/views/admin/HealthView.vue";
 import AlertsView from "@/views/admin/AlertsView.vue";
 import ApiKeysView from "@/views/admin/ApiKeysView.vue";
+import OutreachView from "@/views/admin/OutreachView.vue";
 
 const routes = [
   { path: "/admin/login", name: "Login", component: LoginView },
@@ -19,6 +20,7 @@ const routes = [
       { path: "health", name: "Health", component: HealthView },
       { path: "api-keys", name: "ApiKeys", component: ApiKeysView },
       { path: "alerts", name: "Alerts", component: AlertsView },
+      { path: "outreach", name: "Outreach", component: OutreachView },
     ],
   },
   { path: "/:pathMatch(.*)*", redirect: "/admin/dashboard" },
