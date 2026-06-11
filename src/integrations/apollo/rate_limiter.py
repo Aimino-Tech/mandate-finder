@@ -1,6 +1,9 @@
-import asyncio, time
+import asyncio
+import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+
+
 class TokenBucketRateLimiter:
     def __init__(self, rate: float = 1.0, burst: int = 5) -> None:
         self.rate = rate; self.burst = burst; self.tokens = float(burst); self.last_refill = self._now()

@@ -1,13 +1,15 @@
 import os
+
 from taskiq import TaskiqState
 from taskiq.events import TaskiqEvents
 from taskiq_aio_pika import AioPikaBroker
+
 from src.config import settings
 from src.integrations.apollo.client import ApolloClient
 from src.integrations.apollo.company_enricher import CompanyEnricher
 from src.integrations.apollo.contact_finder import ContactFinder
-from src.integrations.apollo.models import Contact, EnrichedCompany
 from src.integrations.apollo.rate_limiter import TierRateLimiter
+
 
 def _get_api_key(): return settings.apollo_api_key or os.environ.get("APOLLO_API_KEY", "")
 def _get_tier(): return settings.apollo_tier or os.environ.get("APOLLO_TIER", "free")

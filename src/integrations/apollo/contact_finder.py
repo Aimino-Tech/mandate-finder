@@ -1,7 +1,7 @@
-from typing import Any
 from src.integrations.apollo.client import ApolloClient
 from src.integrations.apollo.models import Contact
 from src.integrations.apollo.rate_limiter import TierRateLimiter
+
 
 class ContactFinder:
     def __init__(self, client=None, rate_limiter=None, api_key=""):

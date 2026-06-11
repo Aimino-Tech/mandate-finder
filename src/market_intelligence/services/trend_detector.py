@@ -1,8 +1,8 @@
 from collections import defaultdict
+from collections.abc import Sequence
 from datetime import date, datetime, timedelta
 from enum import Enum
 from statistics import mean
-from typing import Sequence
 
 import numpy as np
 from scipy import signal as scipy_signal

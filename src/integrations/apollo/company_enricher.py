@@ -1,7 +1,7 @@
-from typing import Any
 from src.integrations.apollo.client import ApolloClient
 from src.integrations.apollo.models import EnrichedCompany
 from src.integrations.apollo.rate_limiter import TierRateLimiter
+
 
 class CompanyEnricher:
     def __init__(self, client=None, rate_limiter=None, api_key=""):

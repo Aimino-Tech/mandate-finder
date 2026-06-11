@@ -1,6 +1,6 @@
-from typing import Any
 from fastapi import APIRouter, HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_502_BAD_GATEWAY
+
 from src.config import settings
 from src.integrations.apollo.client import ApolloClient
 from src.integrations.apollo.company_enricher import CompanyEnricher

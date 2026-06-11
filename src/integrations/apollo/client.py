@@ -1,6 +1,10 @@
 from typing import Any
+
 import httpx
+
 from src.config import settings
+
+
 class ApolloClient:
     def __init__(self, api_key: str = "", base_url: str = "https://api.apollo.io/v1") -> None:
         self.api_key = api_key or settings.apollo_api_key; self.base_url = base_url; self._client: httpx.AsyncClient | None = None

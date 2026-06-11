@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import os
 
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from taskiq import TaskiqState
 from taskiq.events import TaskiqEvents
 from taskiq_aio_pika import AioPikaBroker
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from src.config import settings
 from src.services.outreach.campaign import CampaignService
