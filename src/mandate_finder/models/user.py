@@ -24,6 +24,9 @@ class User(Base):
         ForeignKey("organizations.id"), nullable=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    stripe_customer_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, index=True
+    )
 
     organization: Mapped[Organization | None] = relationship(
         "Organization", back_populates="users"

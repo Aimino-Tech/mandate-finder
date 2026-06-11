@@ -41,7 +41,7 @@ line-length = 120
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "ARG"]
 ignore = ["B008", "E501"]
-per-file-ignores = {"tests/*" = ["ARG002"]}
+per-file-ignores = {"tests/*" = ["ARG001", "ARG002"]}
 
 [tool.ruff.format]
 quote-style = "double"
