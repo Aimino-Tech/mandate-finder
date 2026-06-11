@@ -47,16 +47,18 @@ _TITLE_SHORTCUTS: dict[str, str] = {
     "fachinformatiker": "IT Specialist",
 }
 
+_CURRENCY = r"(?:€|\$|£|eur|usd|gbp|chf)"
 _SALARY_PATTERNS: list[re.Pattern] = [
     re.compile(
-        r"(?P<currency>€|\$|£|eur|usd|gbp|chf)?\s*"
-        r"(?P<min>[\d,.]+)\s*(?:–|-|to|–)\s*"
-        r"(?P<max>[\d,.]+)\s*(?:k|K)?\s*"
+        rf"(?P<currency>{_CURRENCY})?\s*"
+        r"(?P<min>[\d,.]+)\s*(?:k|K)?\s*"
+        r"(?:–|-|to|–)\s*"
+        rf"{_CURRENCY}?\s*(?P<max>[\d,.]+)\s*(?:k|K)?\s*"
         r"(?P<period>/hr|/h|/hour|/year|/yr|/annum|p\.?a\.?|per year|annually)?",
         re.IGNORECASE,
     ),
     re.compile(
-        r"(?P<currency>€|\$|£|eur|usd|gbp|chf)?\s*"
+        rf"(?P<currency>{_CURRENCY})?\s*"
         r"(?:from|up to|bis|ab)?\s*"
         r"(?P<amount>[\d,.]+)\s*(?:k|K)?\s*"
         r"(?P<period>/hr|/h|/hour|/year|/yr|/annum|p\.?a\.?|per year|annually)?",
@@ -89,7 +91,7 @@ _EMPLOYMENT_PATTERN = re.compile(
 )
 
 _GERMAN_TITLE_CLEANUP = re.compile(
-    r"\(?(?:m/f|x|m/w/d|m/w|x|w/m/d|diverse)\)?", re.IGNORECASE
+    r"\(?(?:m/f/x|m/w/d|m/w/x|w/m/d|m/f|m/w|w/m|diverse|x)\)?", re.IGNORECASE
 )
 
 
@@ -193,7 +195,6 @@ class JobNormalizer:
             "rust": "Rust",
             "c++": "C++",
             "c#": "C#",
-            "agile": "Agile",
             "jira": "Jira",
             "confluence": "Confluence",
         }
@@ -255,14 +256,14 @@ class JobNormalizer:
     ) -> str | None:
         employment = raw_job.get("employment_type", "")
         if employment:
-            key = employment.lower().replace(" ", "")
+            key = employment.lower().replace(" ", "").replace("-", ".")
             normalized = _EMPLOYMENT_TYPES.get(key)
             if normalized:
                 return normalized
 
         match = _EMPLOYMENT_PATTERN.search(description)
         if match:
-            key = match.group(0).lower().replace(" ", "")
+            key = match.group(0).lower().replace(" ", "").replace("-", ".")
             normalized = _EMPLOYMENT_TYPES.get(key)
             return normalized
 

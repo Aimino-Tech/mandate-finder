@@ -42,8 +42,29 @@ def _jaccard(a: set[str], b: set[str]) -> float:
 
 
 def _fingerprint(company: str, title: str, location: str) -> str:
-    raw = f"{_normalize(company)}|{_normalize(title)}|{_normalize(location)}"
+    raw = f"{_normalize(company)}|{_normalize_title(title)}|{_normalize(location)}"
     return hashlib.md5(raw.encode()).hexdigest()
+
+
+def _normalize_title(raw: str) -> str:
+    _title_shortcuts = {
+        "sr": "senior", "jr": "junior", "lead": "lead",
+        "principal": "principal", "staff": "staff",
+        "vp": "vice president", "vice pres": "vice president",
+        "eng": "engineer", "eng.": "engineer",
+        "mgr": "manager", "dir": "director",
+        "dept": "department", "admin": "administrator",
+        "asst": "assistant", "assoc": "associate",
+        "coord": "coordinator", "coord.": "coordinator",
+        "dev": "developer",
+    }
+    words = raw.split()
+    expanded = []
+    for w in words:
+        cleaned = w.strip(".,()[]{}").lower()
+        expanded.append(_title_shortcuts.get(cleaned, cleaned))
+    result = " ".join(expanded)
+    return re.sub(r"\s+", " ", result).strip()
 
 
 @dataclass
@@ -121,7 +142,7 @@ class JobDedupEngine:
             )
             if fp == rec_fp:
                 return DedupResult(
-                    "EXISTING", "FINGERPRINT", rec, self.fingerprint_confidence
+                    "FINGERPRINT", "FINGERPRINT", rec, self.fingerprint_confidence
                 )
         return DedupResult("NEW", None, None, 0.0)
 
@@ -181,7 +202,9 @@ class JobDedupEngine:
         source_job_id = job.get("source_job_id", "")
         if source and source_job_id:
             return f"source:{source}:{source_job_id}"
-        company = _normalize(job.get("company", ""))
-        title = _normalize(job.get("title", ""))
-        location = _normalize(job.get("location", ""))
-        return f"fp:{_fingerprint(company, title, location)}"
+        fp = _fingerprint(
+            job.get("company", ""),
+            job.get("title", ""),
+            job.get("location", ""),
+        )
+        return f"fp:{fp}"
