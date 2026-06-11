@@ -27,14 +27,16 @@ class Settings(BaseSettings):
 
     app_data_dir: str = "./data"
 
-    agi_provider: str = "openai"
-    agi_api_key: str = ""
-    agi_model: str = "gpt-4o"
-    agi_max_tokens: int = 1024
-    agi_temperature: float = 0.7
-    agi_retry_count: int = 2
-    outreach_default_tone: str = "professional"
-    outreach_max_recipients_per_campaign: int = 100
+    crm_encryption_key: str = ""
+    crm_state_secret: str = "change-me-crm-state"
+    crm_frontend_url: str = ""
+    hubspot_client_id: str = ""
+    hubspot_client_secret: str = ""
+    hubspot_redirect_uri: str = "http://localhost:8000/api/v1/crm/hubspot/callback"
+    pipedrive_redirect_uri: str = "http://localhost:8000/api/v1/crm/pipedrive/callback"
+    salesforce_client_id: str = ""
+    salesforce_client_secret: str = ""
+    salesforce_redirect_uri: str = "http://localhost:8000/api/v1/crm/salesforce/callback"
 
     model_config = {"env_prefix": "MF_", "env_file": ".env"}
 

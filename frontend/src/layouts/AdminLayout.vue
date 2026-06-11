@@ -39,6 +39,7 @@ const navItems = [
   { to: "/admin/outreach", label: "Outreach", icon: "📤" },
   { to: "/admin/health", label: "System Health", icon: "❤️" },
   { to: "/admin/api-keys", label: "API Keys", icon: "🔑" },
+  { to: "/admin/crm", label: "CRM", icon: "📞" },
   { to: "/admin/alerts", label: "Alerts", icon: "🔔" },
 ];
 
