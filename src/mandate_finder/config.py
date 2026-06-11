@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     dev_auth_token: str = "mandate-local-dev-token"
     dev_auth_enabled: bool = False
 
+    # ── Scoring Engine Settings ──────────────────────────────────────
+    scoring_default_min_score: float = 0.0
+    scoring_contact_threshold: float = 0.7
+    scoring_watchlist_threshold: float = 0.4
+    scoring_enable_agi_pass: bool = True
+    scoring_synonym_map_enabled: bool = True
+
     cors_origins: ClassVar[list[str]] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",

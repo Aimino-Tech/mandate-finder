@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from mandate_finder.api.routes import auth, users
+from mandate_finder.api.routes import auth, scoring, users
 from mandate_finder.config import settings
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,7 @@ def api_root() -> dict[str, str]:
 
 api_router.include_router(auth.router)
 api_router.include_router(users.router)
+api_router.include_router(scoring.router)
 
 app.include_router(api_router)
 
