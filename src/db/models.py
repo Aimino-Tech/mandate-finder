@@ -144,3 +144,24 @@ class WebhookDelivery(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
 
     webhook: Mapped[Webhook] = relationship("Webhook", back_populates="deliveries")
+
+
+class JobPosting(Base):
+    __tablename__ = "job_postings"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    source_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    source: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(512), nullable=False)
+    company: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    company_domain: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    skills: Mapped[list[str]] = mapped_column(JSON, default=list)
+    industry: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    role_category: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    posted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+    raw: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    pipeline_run: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    ingested_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, server_default=func.now())
