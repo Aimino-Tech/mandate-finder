@@ -52,7 +52,7 @@ async def test_users_me_invalid_token(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_users_me_creates_user(
-    async_client: AsyncClient, db_session
+    async_client: AsyncClient,
 ) -> None:
     headers = {"Authorization": f"Bearer {settings.dev_auth_token}"}
     response = await async_client.get("/api/v1/users/me", headers=headers)

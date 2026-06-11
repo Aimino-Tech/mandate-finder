@@ -24,7 +24,6 @@ async def test_list_team(
 async def test_invite_member(
     async_client: AsyncClient,
     auth_headers: dict[str, str],
-    db_session: AsyncSession,
 ) -> None:
     response = await async_client.post(
         "/api/v1/users/invite",

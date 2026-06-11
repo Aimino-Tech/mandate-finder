@@ -44,9 +44,11 @@ async def gdpr_delete_user(
     for member in result.scalars().all():
         await db.delete(member)
 
-    await db.execute(
+    result = await db.execute(
         select(AuditLog).where(AuditLog.user_id == user.id)
     )
+    for entry in result.scalars().all():
+        await db.delete(entry)
 
     await db.delete(user)
     await db.commit()

@@ -30,7 +30,6 @@ def _dev_current_user() -> dict[str, Any]:
 
 
 async def get_current_user(
-    db: DbSession,
     authorization: Annotated[str | None, Header()] = None,
 ) -> dict[str, Any]:
     if not authorization or not authorization.startswith("Bearer "):

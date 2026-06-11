@@ -88,5 +88,5 @@ async def test_user(db_session: AsyncSession, test_org: Organization) -> User:
 
 
 @pytest_asyncio.fixture
-async def auth_headers(test_user: User) -> dict[str, str]:
+async def auth_headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {settings.dev_auth_token}"}
