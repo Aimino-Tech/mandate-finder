@@ -1,7 +1,7 @@
 [project]
 name = "mandate-finder"
 version = "0.1.0"
-description = "Mandate Finder — HR Client Discovery"
+description = "Multi-Profile Search Engine — Parallel Job Discovery for HR"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",
@@ -41,7 +41,7 @@ line-length = 120
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "ARG"]
 ignore = ["B008", "E501"]
-per-file-ignores = {"tests/*" = ["ARG002"]}
+per-file-ignores = {"tests/*" = ["ARG001", "ARG002"]}
 
 [tool.ruff.format]
 quote-style = "double"
@@ -50,6 +50,10 @@ quote-style = "double"
 python_version = "3.11"
 strict = true
 ignore_missing_imports = true
+
+[tool.setuptools.packages.find]
+include = ["mandate_finder*"]
+exclude = ["skills*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

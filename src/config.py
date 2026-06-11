@@ -42,3 +42,40 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+class ABCampaignSettings(BaseSettings):
+    database_url: str = "sqlite:///mandate_finder.db"
+    significance_threshold: float = 0.05
+    min_sample_size: int = 30
+    imap_server: str = ""
+    imap_user: str = ""
+    imap_password: str = ""
+    sendgrid_api_key: str = ""
+    sendgrid_webhook_secret: str = ""
+    polling_interval_seconds: int = 15
+
+    model_config = {"env_prefix": "MF_", "env_file": ".env"}
+
+
+ab_settings = ABCampaignSettings()
+
+
+class BillingSettings(BaseSettings):
+    app_env: str = "development"
+    app_secret_key: str = "change-me"
+    cors_origins: str = "http://localhost:3000"
+    database_url: str = "postgresql+asyncpg://user:pass@localhost:5432/mandate_finder"
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_solo_price_id: str = ""
+    stripe_professional_price_id: str = ""
+    stripe_agency_price_id: str = ""
+    propelauth_auth_url: str = ""
+    propelauth_api_key: str = ""
+    redis_url: str = "redis://localhost:6379/0"
+    vat_api_url: str = "https://ec.europa.eu/taxation_customs/vies/services/checkVatService"
+
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+
+billing_settings = BillingSettings()

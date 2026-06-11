@@ -6,9 +6,12 @@ build/
 .venv/
 venv/
 .env
+.env.example
 *.db
 *.sqlite3
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 node_modules/
+.oc-vision-data/
+.opencode/node_modules/

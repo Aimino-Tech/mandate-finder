@@ -131,3 +131,135 @@ async def test_user(db_session: AsyncSession, test_org: Organization) -> User:
 @pytest_asyncio.fixture
 async def auth_headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {settings.dev_auth_token}"}
+
+
+# A/B Testing fixtures
+@pytest.fixture
+def ab_db_session():
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from src.database import Base as ABBase
+
+    engine = create_engine("sqlite:///:memory:")
+    ABBase.metadata.create_all(engine)
+    TestSession = sessionmaker(bind=engine)
+    session = TestSession()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+@pytest.fixture
+def ab_campaign(ab_db_session):
+    from src.models.ab_test import Campaign
+
+    c = Campaign(name="test-campaign", industry="tech", role_seniority="senior", company_size="enterprise")
+    ab_db_session.add(c)
+    ab_db_session.commit()
+    return c
+
+
+@pytest.fixture
+def ab_control_variant(ab_db_session, ab_campaign):
+    from src.models.ab_test import MessageVariant
+
+    v = MessageVariant(
+        campaign_id=ab_campaign.id,
+        name="control",
+        subject="Standard outreach",
+        body="Hello, I wanted to reach out...",
+        call_to_action="Schedule a call",
+        personalization_level="low",
+        channel="email",
+        is_control=True,
+    )
+    ab_db_session.add(v)
+    ab_db_session.commit()
+    return v
+
+
+@pytest.fixture
+def ab_test_variants(ab_db_session, ab_campaign):
+    from src.models.ab_test import MessageVariant
+
+    variants = []
+    configs = [
+        ("personalized_high", "High personalization", "Hello {{name}}, I noticed your work at {{company}}...", "high"),
+        ("personalized_medium", "Medium personalization", "Hi {{name}}, wanted to connect...", "medium"),
+        ("direct_cta", "Direct call-to-action", "Book a demo today!", "low"),
+    ]
+    for name, subject, body, pl in configs:
+        v = MessageVariant(
+            campaign_id=ab_campaign.id,
+            name=name,
+            subject=subject,
+            body=body,
+            call_to_action="Reply for details",
+            personalization_level=pl,
+            channel="email",
+        )
+        ab_db_session.add(v)
+        variants.append(v)
+    ab_db_session.commit()
+    return variants
+
+
+@pytest.fixture
+def ab_test(ab_db_session, ab_campaign, ab_control_variant, ab_test_variants):
+    from src.models.ab_test import ABTest, ABTestVariant
+
+    t = ABTest(
+        campaign_id=ab_campaign.id,
+        name="email-outreach-test",
+        metric="reply_rate",
+        significance_threshold=0.05,
+        min_sample_size=30,
+    )
+    ab_db_session.add(t)
+    ab_db_session.flush()
+    for v in [ab_control_variant] + ab_test_variants:
+        av = ABTestVariant(ab_test_id=t.id, variant_id=v.id)
+        ab_db_session.add(av)
+    ab_db_session.commit()
+    return t
+
+
+# Competitor Insights fixtures
+import uuid
+from datetime import UTC, datetime, timedelta
+
+@pytest_asyncio.fixture
+async def company_a(db_session: AsyncSession) -> "Company":
+    from src.models.company import Company
+    c = Company(id=uuid.uuid4(), name="Siemens AG", industry="Engineering", is_private=False)
+    db_session.add(c)
+    await db_session.flush()
+    return c
+
+
+@pytest_asyncio.fixture
+async def company_b(db_session: AsyncSession) -> "Company":
+    from src.models.company import Company
+    c = Company(id=uuid.uuid4(), name="Bosch GmbH", industry="Engineering", is_private=False)
+    db_session.add(c)
+    await db_session.flush()
+    return c
+
+
+@pytest_asyncio.fixture
+async def company_c(db_session: AsyncSession) -> "Company":
+    from src.models.company import Company
+    c = Company(id=uuid.uuid4(), name="SAP SE", industry="Technology", is_private=False)
+    db_session.add(c)
+    await db_session.flush()
+    return c
+
+
+@pytest_asyncio.fixture
+async def private_company(db_session: AsyncSession) -> "Company":
+    from src.models.company import Company
+    c = Company(id=uuid.uuid4(), name="Private Corp", industry="Finance", is_private=True)
+    db_session.add(c)
+    await db_session.flush()
+    return c

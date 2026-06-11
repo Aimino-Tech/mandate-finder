@@ -7,6 +7,7 @@ import HealthView from "@/views/admin/HealthView.vue";
 import AlertsView from "@/views/admin/AlertsView.vue";
 import ApiKeysView from "@/views/admin/ApiKeysView.vue";
 import CrmView from "@/views/admin/CrmView.vue";
+import BillingView from "@/views/admin/BillingView.vue";
 
 const routes = [
   { path: "/admin/login", name: "Login", component: LoginView },
@@ -22,6 +23,7 @@ const routes = [
       { path: "crm", name: "CRM", component: CrmView },
       { path: "alerts", name: "Alerts", component: AlertsView },
       { path: "outreach", name: "Outreach", component: OutreachView },
+      { path: "billing", name: "Billing", component: BillingView },
     ],
   },
   { path: "/:pathMatch(.*)*", redirect: "/admin/dashboard" },

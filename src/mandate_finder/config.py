@@ -46,6 +46,17 @@ class Settings(BaseSettings):
     ba_api_key: str = ""
     ba_api_base_url: str = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service"
 
+    # ── Stripe ───────────────────────────────────────────────────────────
+    stripe_api_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_trial_days: int = 14
+    stripe_return_url: str = "http://localhost:3000/settings/billing"
+    stripe_price_ids: dict[str, str] = {
+        "solo": "",
+        "professional": "",
+        "agency": "",
+    }
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_prefix="MANDATE_",

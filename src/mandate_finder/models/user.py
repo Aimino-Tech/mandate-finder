@@ -3,10 +3,9 @@ from __future__ import annotations
 from uuid import UUID, uuid4
 
 from sqlalchemy import Boolean, ForeignKey, String
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from mandate_finder.database import Base
+from mandate_finder.database import Base, json_column
 
 
 class User(Base):
@@ -19,12 +18,15 @@ class User(Base):
         String(255), unique=True, nullable=True
     )
     user_type: Mapped[str] = mapped_column(String(50), default="trial")
-    information: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
-    settings: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    information: Mapped[dict[str, object]] = mapped_column(json_column(), default=dict)
+    settings: Mapped[dict[str, object]] = mapped_column(json_column(), default=dict)
     organization_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("organizations.id"), nullable=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    stripe_customer_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, index=True
+    )
 
     organization: Mapped[Organization | None] = relationship(
         "Organization", back_populates="users"

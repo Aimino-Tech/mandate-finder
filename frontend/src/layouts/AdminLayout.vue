@@ -41,6 +41,7 @@ const navItems = [
   { to: "/admin/api-keys", label: "API Keys", icon: "🔑" },
   { to: "/admin/crm", label: "CRM", icon: "📞" },
   { to: "/admin/alerts", label: "Alerts", icon: "🔔" },
+  { to: "/admin/billing", label: "Billing", icon: "💳" },
 ];
 
 function isActive(path: string) { return route.path === path; }
