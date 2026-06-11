@@ -43,7 +43,7 @@ async def ingest_signals(signals: list[EarlySignal]) -> dict[str, Any]:
 
 
 @router.get("/trends")
-async def get_trend_report(postings: PostingsDep, signals: SignalsDep, days: int = Query(90, ge=1, le=365), user_filters: list[str] = Query(default=[])) -> dict[str, Any]:
+async def get_trend_report(postings: PostingsDep, signals: SignalsDep, days: int = Query(90, ge=1, le=365), _user_filters: list[str] = Query(default=[])) -> dict[str, Any]:
     from market_intelligence.services.trend_detector import compute_trend_series, top_growing_roles
     return {"top_growing_roles": top_growing_roles(postings, limit=10, days=days), "industry_pulse": compute_trend_series(postings, category_attr="industry", days=days), "early_warnings": [s for s in signals if s.confidence >= 0.3]}
 

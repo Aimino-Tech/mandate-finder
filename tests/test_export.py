@@ -1,6 +1,8 @@
 from datetime import datetime
+
 import pytest
-from market_intelligence.models import TrendReport, TrendSeries, TrendPoint
+
+from market_intelligence.models import TrendPoint, TrendReport, TrendSeries
 from market_intelligence.services.export import export_report
 
 

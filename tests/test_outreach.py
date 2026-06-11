@@ -107,8 +107,8 @@ class TestTemplateService:
 class TestCampaignService:
     async def test_create_campaign(self, test_session_factory: async_sessionmaker):
         async with test_session_factory() as session:
-            from src.services.outreach.campaign import CampaignService
             from src.core.security import hash_api_key
+            from src.services.outreach.campaign import CampaignService
             key_hash = hash_api_key("test-key")
             key = APIKey(key_hash=key_hash, name="Test", tier="solo")
             session.add(key)
@@ -128,8 +128,8 @@ class TestCampaignService:
 
     async def test_add_recipient(self, test_session_factory: async_sessionmaker):
         async with test_session_factory() as session:
-            from src.services.outreach.campaign import CampaignService
             from src.core.security import hash_api_key
+            from src.services.outreach.campaign import CampaignService
             key_hash = hash_api_key("test-key-2")
             key = APIKey(key_hash=key_hash, name="Test2", tier="solo")
             session.add(key)
@@ -151,8 +151,8 @@ class TestCampaignService:
 
     async def test_generate_messages_no_recipients(self, test_session_factory: async_sessionmaker):
         async with test_session_factory() as session:
-            from src.services.outreach.campaign import CampaignService
             from src.core.security import hash_api_key
+            from src.services.outreach.campaign import CampaignService
             key_hash = hash_api_key("test-key-3")
             key = APIKey(key_hash=key_hash, name="Test3", tier="solo")
             session.add(key)
@@ -388,8 +388,8 @@ class TestComplianceIntegration:
 
 class TestDeliveryTracking:
     async def test_campaign_delivery_status(self, test_session_factory: async_sessionmaker):
-        from src.services.outreach.campaign import CampaignService
         from src.core.security import hash_api_key
+        from src.services.outreach.campaign import CampaignService
         async with test_session_factory() as session:
             key_hash = hash_api_key("del-test-key")
             key = APIKey(key_hash=key_hash, name="Del Test", tier="solo")
@@ -405,8 +405,8 @@ class TestDeliveryTracking:
             assert await service.approve_messages(campaign.id) is True
 
     async def test_send_updates_count(self, test_session_factory: async_sessionmaker):
-        from src.services.outreach.campaign import CampaignService
         from src.core.security import hash_api_key
+        from src.services.outreach.campaign import CampaignService
         async with test_session_factory() as session:
             key_hash = hash_api_key("send-count-key")
             key = APIKey(key_hash=key_hash, name="Send Count", tier="solo")
@@ -428,9 +428,9 @@ class TestDeliveryTracking:
             assert updated.sent_count == 1
 
     async def test_create_delivery(self, test_session_factory: async_sessionmaker):
-        from src.services.outreach.delivery import DeliveryService
-        from src.services.outreach.campaign import CampaignService
         from src.core.security import hash_api_key
+        from src.services.outreach.campaign import CampaignService
+        from src.services.outreach.delivery import DeliveryService
         async with test_session_factory() as session:
             key_hash = hash_api_key("del-svc-key")
             key = APIKey(key_hash=key_hash, name="Del Svc", tier="solo")
@@ -453,9 +453,9 @@ class TestDeliveryTracking:
             assert delivery.recipient_email == "recipient@test.com"
 
     async def test_update_delivery_status(self, test_session_factory: async_sessionmaker):
-        from src.services.outreach.delivery import DeliveryService
-        from src.services.outreach.campaign import CampaignService
         from src.core.security import hash_api_key
+        from src.services.outreach.campaign import CampaignService
+        from src.services.outreach.delivery import DeliveryService
         async with test_session_factory() as session:
             key_hash = hash_api_key("upd-del-key")
             key = APIKey(key_hash=key_hash, name="Upd Del", tier="solo")
@@ -478,9 +478,9 @@ class TestDeliveryTracking:
             assert updated.sent_at is not None
 
     async def test_create_variant(self, test_session_factory: async_sessionmaker):
-        from src.services.outreach.delivery import VariantService
-        from src.services.outreach.campaign import CampaignService
         from src.core.security import hash_api_key
+        from src.services.outreach.campaign import CampaignService
+        from src.services.outreach.delivery import VariantService
         async with test_session_factory() as session:
             key_hash = hash_api_key("var-test-key")
             key = APIKey(key_hash=key_hash, name="Var Test", tier="solo")
@@ -502,9 +502,9 @@ class TestDeliveryTracking:
             assert variant.subject == "Alt Subject"
 
     async def test_declare_winner(self, test_session_factory: async_sessionmaker):
-        from src.services.outreach.delivery import VariantService
-        from src.services.outreach.campaign import CampaignService
         from src.core.security import hash_api_key
+        from src.services.outreach.campaign import CampaignService
+        from src.services.outreach.delivery import VariantService
         async with test_session_factory() as session:
             key_hash = hash_api_key("win-test-key")
             key = APIKey(key_hash=key_hash, name="Win Test", tier="solo")

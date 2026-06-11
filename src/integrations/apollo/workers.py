@@ -36,10 +36,21 @@ class ContactDiscoveryWorker:
         return await self._finder.find(company_name, company_domain, title_keywords, mock=mock)
 
 broker = AioPikaBroker(_get_amqp_url())
-async def on_startup(state: TaskiqState): state.enricher = CompanyEnrichmentWorker(); state.discoverer = ContactDiscoveryWorker()
+
+
+async def on_startup(state: TaskiqState):
+    state.enricher = CompanyEnrichmentWorker()
+    state.discoverer = ContactDiscoveryWorker()
+
+
 broker.add_event_handler(TaskiqEvents.WORKER_STARTUP, on_startup)
 
+
 @broker.task
-async def enrich_company_task(name, domain=""): return await CompanyEnrichmentWorker().enrich_company(name, domain)
+async def enrich_company_task(name: str, domain: str = ""):
+    return await CompanyEnrichmentWorker().enrich_company(name, domain)
+
+
 @broker.task
-async def find_contacts_task(company_name, company_domain="", title_keywords=None): return await ContactDiscoveryWorker().discover(company_name, company_domain, title_keywords)
+async def find_contacts_task(company_name: str, company_domain: str = "", title_keywords: list[str] | None = None):
+    return await ContactDiscoveryWorker().discover(company_name, company_domain, title_keywords)

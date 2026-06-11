@@ -1,8 +1,10 @@
 import pytest
+
 from src.integrations.apollo.company_enricher import CompanyEnricher
 from src.integrations.apollo.contact_finder import ContactFinder
 from src.integrations.apollo.models import Contact, EnrichedCompany
 from src.integrations.apollo.rate_limiter import TierRateLimiter
+
 
 @pytest.mark.asyncio
 async def test_company_enricher_mock():
@@ -34,10 +36,18 @@ async def test_company_to_decision_maker_flow():
     c = await ContactFinder(api_key="mock_key").find(company_name=e.name, company_domain=e.domain, title_keywords=["HR", "Talent"], mock=True)
     assert len(c) > 0 and "@siemens.com" in c[0].email and c[0].confidence_score > 0.5
 
-def test_tier_rate_limiter_default(): assert TierRateLimiter("free").tier == "free"
-def test_tier_rate_limiter_pro(): assert TierRateLimiter("pro").tier == "pro"
+def test_tier_rate_limiter_default():
+    assert TierRateLimiter("free").tier == "free"
+
+
+def test_tier_rate_limiter_pro():
+    assert TierRateLimiter("pro").tier == "pro"
+
+
 def test_tier_rate_limiter_unknown_falls_back_to_free():
-    l = TierRateLimiter("unknown"); assert l.tier == "unknown" and l._limiter.rate == 100 / 86400.0
+    limiter = TierRateLimiter("unknown")
+    assert limiter.tier == "unknown"
+    assert limiter._limiter.rate == 100 / 86400.0
 
 @pytest.mark.asyncio
 async def test_company_enrichment_worker_enrich():

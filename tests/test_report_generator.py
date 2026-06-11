@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+
 from market_intelligence.models import EarlySignal, JobPosting, RoleCategory
 from market_intelligence.services.report_generator import generate_trend_report, industry_pulse_summary
 

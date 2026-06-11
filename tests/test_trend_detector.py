@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+
 from market_intelligence.models import JobPosting, RoleCategory
 from market_intelligence.services.trend_detector import compute_trend_series, top_growing_roles
 

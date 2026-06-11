@@ -10,8 +10,14 @@ from src.integrations.apollo.rate_limiter import TierRateLimiter
 
 router = APIRouter(prefix="/enrichment", tags=["enrichment"])
 
-def _get_enricher(): return CompanyEnricher(api_key=settings.apollo_api_key, rate_limiter=TierRateLimiter(settings.apollo_tier or "free"))
-def _get_finder(): return ContactFinder(api_key=settings.apollo_api_key, rate_limiter=TierRateLimiter(settings.apollo_tier or "free"))
+
+def _get_enricher():
+    return CompanyEnricher(api_key=settings.apollo_api_key, rate_limiter=TierRateLimiter(settings.apollo_tier or "free"))
+
+
+def _get_finder():
+    return ContactFinder(api_key=settings.apollo_api_key, rate_limiter=TierRateLimiter(settings.apollo_tier or "free"))
+
 
 @router.post("/company", response_model=EnrichedCompany)
 async def enrich_company(name: str, domain: str = "", mock: bool = False):
@@ -20,16 +26,20 @@ async def enrich_company(name: str, domain: str = "", mock: bool = False):
         raise HTTPException(status_code=HTTP_502_BAD_GATEWAY, detail="Failed to enrich company")
     return result
 
+
 @router.post("/contacts", response_model=list[Contact])
 async def find_contacts(company_name: str, company_domain: str = "", title_keywords: list[str] | None = None, mock: bool = False):
     return await _get_finder().find(company_name=company_name, company_domain=company_domain, title_keywords=title_keywords, mock=mock)
 
+
 @router.post("/pipeline")
 async def full_pipeline(name: str, domain: str = "", title_keywords: list[str] | None = None, mock: bool = False):
-    enricher = _get_enricher(); finder = _get_finder()
+    enricher = _get_enricher()
+    finder = _get_finder()
     company = await enricher.enrich(name=name, domain=domain, mock=mock)
     contacts = await finder.find(company_name=name, company_domain=domain, title_keywords=title_keywords, mock=mock)
     return {"company": company.model_dump(), "contacts": [c.model_dump() for c in contacts], "contact_count": len(contacts)}
+
 
 @router.post("/verify-email")
 async def verify_email(email: str):
