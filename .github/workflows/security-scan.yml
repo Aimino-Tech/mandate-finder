@@ -1,0 +1,28 @@
+name: Weekly Security Scan
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  vulnerability-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run pip-audit
+        run: uv run pip-audit --strict --desc on
+
+      - name: Run bandit security linter
+        run: uv run bandit -r src/ -c pyproject.toml
+        continue-on-error: true
