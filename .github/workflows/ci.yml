@@ -48,3 +48,20 @@ jobs:
           MANDATE_DATABASE_URL: postgresql+asyncpg://mandate:mandate@127.0.0.1:5432/mandate_finder
           MANDATE_DATABASE_URL_SYNC: postgresql+psycopg://mandate:mandate@127.0.0.1:5432/mandate_finder
           MANDATE_ENVIRONMENT: local
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Audit dependencies for vulnerabilities
+        run: uv run pip-audit --strict --desc on
