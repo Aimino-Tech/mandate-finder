@@ -1,6 +1,9 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.auth import get_current_user
 from src.db.database import get_session
 from src.services.competitor_insights import (
     get_alternative_companies,
@@ -15,6 +18,7 @@ router = APIRouter(prefix="/api/companies", tags=["competitor-insights"])
 async def competitor_insight(
     company_id: str,
     db: AsyncSession = Depends(get_session),
+    _current_user: Any = Depends(get_current_user),
 ):
     insight = await get_competitor_insight(company_id, db)
     if insight is None:
@@ -30,6 +34,7 @@ async def signal_timeline(
     company_id: str,
     days: int = Query(90, ge=1, le=365),
     db: AsyncSession = Depends(get_session),
+    _current_user: Any = Depends(get_current_user),
 ):
     timeline = await get_signal_timeline(company_id, db, days=days)
     return {"data": timeline, "error": None}
@@ -40,6 +45,7 @@ async def alternative_companies(
     company_id: str,
     limit: int = Query(5, ge=1, le=20),
     db: AsyncSession = Depends(get_session),
+    _current_user: Any = Depends(get_current_user),
 ):
     alternatives = await get_alternative_companies(company_id, db, limit=limit)
     return {"data": alternatives, "error": None}

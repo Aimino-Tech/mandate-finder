@@ -36,7 +36,11 @@ from mandate_finder.services.billing_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/billing", tags=["billing"])
+router = APIRouter(
+    prefix="/billing",
+    tags=["billing"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 async def _current_user_id(

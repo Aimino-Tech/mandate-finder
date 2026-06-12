@@ -3,8 +3,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from src.api.auth import get_current_user
 from src.pipeline.pipeline_orchestrator import SourceConfig
 
 logger = logging.getLogger(__name__)
@@ -13,7 +14,9 @@ router = APIRouter(prefix="/pipeline", tags=["pipeline"])
 
 
 @router.get("/status")
-async def pipeline_status() -> dict[str, Any]:
+async def pipeline_status(
+    _current_user: Any = Depends(get_current_user),
+) -> dict[str, Any]:
     return {
         "status": "idle",
         "available_sources": [s.name for s in _default_source_configs()],

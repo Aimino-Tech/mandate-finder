@@ -12,6 +12,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_409_CONFLICT, HTTP_503_SERVICE_UNAVAILABLE
 
+from src.api.auth import get_current_user
 from src.config import settings
 from src.db.database import get_session
 from src.db.models import CRMConnection, CRMSyncLog
@@ -108,7 +109,9 @@ def _to_item(c: CRMConnection) -> dict:
 
 
 @router.get("/config", response_model=list[CRMConfigItem])
-async def config():
+async def config(
+    _current_user: Any = Depends(get_current_user),
+):
     return [CRMConfigItem(crm_type="hubspot", available=bool(settings.hubspot_client_id), hint="OAuth2"),
             CRMConfigItem(crm_type="pipedrive", available=True, hint="API token"),
             CRMConfigItem(crm_type="salesforce", available=bool(settings.salesforce_client_id), hint="OAuth2")]
@@ -252,7 +255,9 @@ async def wh_lead(payload: dict[str, object], s: AsyncSession = Depends(get_sess
 
 
 @router.get("/hubspot/auth-url", response_model=OAuthURL)
-async def hs_auth():
+async def hs_auth(
+    _current_user: Any = Depends(get_current_user),
+):
     if not settings.hubspot_client_id:
         raise HTTPException(HTTP_503_SERVICE_UNAVAILABLE, detail="HubSpot not configured")
     return OAuthURL(url=f"https://app.hubspot.com/oauth/authorize?client_id={settings.hubspot_client_id}"
@@ -261,7 +266,9 @@ async def hs_auth():
 
 
 @router.get("/salesforce/auth-url", response_model=OAuthURL)
-async def sf_auth():
+async def sf_auth(
+    _current_user: Any = Depends(get_current_user),
+):
     if not settings.salesforce_client_id:
         raise HTTPException(HTTP_503_SERVICE_UNAVAILABLE, detail="Salesforce not configured")
     return OAuthURL(url=f"https://login.salesforce.com/services/oauth2/authorize?response_type=code"

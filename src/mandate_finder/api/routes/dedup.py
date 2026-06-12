@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from mandate_finder.api.deps import DbSession
+from mandate_finder.api.deps import DbSession, get_current_user
 from mandate_finder.models.dedup_cache import DedupCache
 from mandate_finder.models.job_posting import JobPosting
 from mandate_finder.scrapers.job_dedup import (
@@ -19,7 +19,7 @@ from mandate_finder.scrapers.job_dedup import (
 )
 from mandate_finder.scrapers.job_normalizer import JobNormalizer
 
-router = APIRouter(prefix="/dedup", tags=["dedup"])
+router = APIRouter(prefix="/dedup", tags=["dedup"], dependencies=[Depends(get_current_user)])
 
 
 # ---------------------------------------------------------------------------

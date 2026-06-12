@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_502_BAD_GATEWAY
 
+from src.api.auth import get_current_user
 from src.config import settings
 from src.integrations.apollo.client import ApolloClient
 from src.integrations.apollo.company_enricher import CompanyEnricher
@@ -20,7 +23,12 @@ def _get_finder():
 
 
 @router.post("/company", response_model=EnrichedCompany)
-async def enrich_company(name: str, domain: str = "", mock: bool = False):
+async def enrich_company(
+    name: str,
+    domain: str = "",
+    mock: bool = False,
+    _current_user: Any = Depends(get_current_user),
+):
     result = await _get_enricher().enrich(name=name, domain=domain, mock=mock)
     if result.id is None and not mock:
         raise HTTPException(status_code=HTTP_502_BAD_GATEWAY, detail="Failed to enrich company")
@@ -28,12 +36,24 @@ async def enrich_company(name: str, domain: str = "", mock: bool = False):
 
 
 @router.post("/contacts", response_model=list[Contact])
-async def find_contacts(company_name: str, company_domain: str = "", title_keywords: list[str] | None = None, mock: bool = False):
+async def find_contacts(
+    company_name: str,
+    company_domain: str = "",
+    title_keywords: list[str] | None = None,
+    mock: bool = False,
+    _current_user: Any = Depends(get_current_user),
+):
     return await _get_finder().find(company_name=company_name, company_domain=company_domain, title_keywords=title_keywords, mock=mock)
 
 
 @router.post("/pipeline")
-async def full_pipeline(name: str, domain: str = "", title_keywords: list[str] | None = None, mock: bool = False):
+async def full_pipeline(
+    name: str,
+    domain: str = "",
+    title_keywords: list[str] | None = None,
+    mock: bool = False,
+    _current_user: Any = Depends(get_current_user),
+):
     enricher = _get_enricher()
     finder = _get_finder()
     company = await enricher.enrich(name=name, domain=domain, mock=mock)
@@ -42,7 +62,10 @@ async def full_pipeline(name: str, domain: str = "", title_keywords: list[str] |
 
 
 @router.post("/verify-email")
-async def verify_email(email: str):
+async def verify_email(
+    email: str,
+    _current_user: Any = Depends(get_current_user),
+):
     if not email or "@" not in email:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Invalid email address")
     result = await ApolloClient(api_key=settings.apollo_api_key).verify_email(email)

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from mandate_finder.api.deps import get_db
+from mandate_finder.api.deps import get_current_user, get_db
 from mandate_finder.schemas.ab_testing import (
     ABTestCreate,
     ABTestDashboard,
@@ -27,7 +27,11 @@ from mandate_finder.schemas.ab_testing import (
 )
 from mandate_finder.services.ab_test_service import ABTestService
 
-router = APIRouter(prefix="/ab-testing", tags=["A/B Testing"])
+router = APIRouter(
+    prefix="/ab-testing",
+    tags=["A/B Testing"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 async def get_service(db: AsyncSession = Depends(get_db)) -> ABTestService:

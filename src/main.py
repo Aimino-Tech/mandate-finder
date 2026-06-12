@@ -1,7 +1,10 @@
+from typing import Any
+
 from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from src.api.auth import get_current_user
 from src.database import Base, engine, get_session
 from src.models.ab_test import ABTest, ABTestVariant, Campaign, MessageEvent, MessageVariant
 from src.services.ab_test_service import ABTestService
@@ -45,7 +48,7 @@ def health():
 
 
 @app.post("/campaigns")
-def create_campaign(name: str, industry: str | None = None, db: Session = Depends(get_session)):
+def create_campaign(name: str, industry: str | None = None, db: Session = Depends(get_session), _current_user: Any = Depends(get_current_user)):
     campaign = Campaign(name=name, industry=industry)
     db.add(campaign)
     db.commit()
@@ -53,7 +56,7 @@ def create_campaign(name: str, industry: str | None = None, db: Session = Depend
 
 
 @app.post("/campaigns/{campaign_id}/variants")
-def create_variant(campaign_id: str, variant: VariantCreate, db: Session = Depends(get_session)):
+def create_variant(campaign_id: str, variant: VariantCreate, db: Session = Depends(get_session), _current_user: Any = Depends(get_current_user)):
     campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
     if not campaign:
         raise HTTPException(404, "Campaign not found")
@@ -65,7 +68,7 @@ def create_variant(campaign_id: str, variant: VariantCreate, db: Session = Depen
 
 
 @app.post("/ab-tests")
-def create_ab_test(test: ABTestCreate, db: Session = Depends(get_session)):
+def create_ab_test(test: ABTestCreate, db: Session = Depends(get_session), _current_user: Any = Depends(get_current_user)):
     t = ABTest(campaign_id=test.campaign_id, name=test.name, metric=test.metric)
     db.add(t)
     db.flush()
@@ -78,7 +81,7 @@ def create_ab_test(test: ABTestCreate, db: Session = Depends(get_session)):
 
 
 @app.get("/ab-tests/{test_id}/performance")
-def get_performance(test_id: str, db: Session = Depends(get_session)):
+def get_performance(test_id: str, db: Session = Depends(get_session), _current_user: Any = Depends(get_current_user)):
     test = db.query(ABTest).filter(ABTest.id == test_id).first()
     if not test:
         raise HTTPException(404, "ABTest not found")
@@ -101,7 +104,7 @@ def get_performance(test_id: str, db: Session = Depends(get_session)):
 
 
 @app.post("/ab-tests/{test_id}/promote")
-def promote_winner(test_id: str, db: Session = Depends(get_session)):
+def promote_winner(test_id: str, db: Session = Depends(get_session), _current_user: Any = Depends(get_current_user)):
     test = db.query(ABTest).filter(ABTest.id == test_id).first()
     if not test:
         raise HTTPException(404, "ABTest not found")
@@ -122,13 +125,13 @@ def sendgrid_webhook(payload: SendGridWebhookPayload, background_tasks: Backgrou
 
 
 @app.get("/optimal-send-time/{persona_key}")
-def get_optimal_time(persona_key: str, db: Session = Depends(get_session)):
+def get_optimal_time(persona_key: str, db: Session = Depends(get_session), _current_user: Any = Depends(get_current_user)):
     service = ABTestService(db)
     return service.get_optimal_send_time(persona_key)
 
 
 @app.get("/ab-tests/{test_id}/report")
-def export_report(test_id: str, db: Session = Depends(get_session)):
+def export_report(test_id: str, db: Session = Depends(get_session), _current_user: Any = Depends(get_current_user)):
     test = db.query(ABTest).filter(ABTest.id == test_id).first()
     if not test:
         raise HTTPException(404, "ABTest not found")
