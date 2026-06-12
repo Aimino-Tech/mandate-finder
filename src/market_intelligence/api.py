@@ -66,12 +66,12 @@ async def get_top_roles(postings: PostingsDep, days: int = Query(90, ge=1, le=36
 
 
 @router.get("/industry-pulse")
-async def get_industry_pulse(postings: PostingsDep, days: int = Query(90, ge=1, le=365)) -> dict[str, Any]:
+async def get_industry_pulse(postings: PostingsDep, days: int = Query(90, ge=1, le=365), _current_user: Any = Depends(get_current_user)) -> dict[str, Any]:
     from market_intelligence.services.trend_detector import compute_trend_series
     return {"industries": compute_trend_series(postings, category_attr="industry", days=days)}
 
 
 @router.get("/early-warnings")
-async def get_early_warnings(signals: SignalsDep, min_confidence: float = Query(0.3, ge=0, le=1)) -> dict[str, Any]:
+async def get_early_warnings(signals: SignalsDep, min_confidence: float = Query(0.3, ge=0, le=1), _current_user: Any = Depends(get_current_user)) -> dict[str, Any]:
     filtered = [s for s in signals if s.confidence >= min_confidence]
     return {"warnings": filtered, "total": len(filtered)}
