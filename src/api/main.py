@@ -1,37 +1,23 @@
+"""
+DEPRECATED — Duplicate FastAPI application.
+
+This module defined a separate FastAPI app for billing/stripe routes with
+its own /health endpoint, overlapping with the consolidated app in
+``src/mandate_finder/api/main.py``.
+
+All routes have been consolidated into ``src.mandate_finder.api.main``.
+"""
+
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
+import warnings as _warnings
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from src.mandate_finder.api.main import app as _app
 
-from src.api.routes import billing, stripe_webhook
-from src.config import settings
+app = _app
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):  # noqa: ARG001
-    yield
-
-
-app = FastAPI(
-    title="Mandate Finder API",
-    version="0.1.0",
-    lifespan=lifespan,
+_warnings.warn(
+    "Importing 'src.api.main' is deprecated. Use 'src.mandate_finder.api.main' instead.",
+    DeprecationWarning,
+    stacklevel=2,
 )
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins.split(","),
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(billing.router)
-app.include_router(stripe_webhook.router)
-
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}

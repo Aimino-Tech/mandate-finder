@@ -23,6 +23,11 @@ os.environ.setdefault("MANDATE_DATABASE_URL", "sqlite+aiosqlite:///./.test_db.sq
 os.environ.setdefault("MANDATE_DATABASE_URL_SYNC", "sqlite+pysqlite:///./.test_db.sqlite3")
 os.environ.setdefault("MANDATE_DEBUG", "false")
 
+# Ensure src/ is on the path so that mandate_finder resolves to the
+# comprehensive package under src/mandate_finder/ (the consolidated app).
+import sys as _sys
+_sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
+
 # Monkey-patch JSONB -> JSON for SQLite compatibility
 # This must happen BEFORE any imports that do `from sqlalchemy.dialects.postgresql import JSONB`
 import sqlalchemy.dialects.postgresql as _pg

@@ -52,7 +52,7 @@ strict = true
 ignore_missing_imports = true
 
 [tool.setuptools.packages.find]
-include = ["mandate_finder*"]
+include = ["mandate_finder*", "src*"]
 exclude = ["skills*"]
 
 [tool.pytest.ini_options]
