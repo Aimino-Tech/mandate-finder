@@ -38,7 +38,21 @@ api_router.include_router(billing_router)
 api_router.include_router(stripe_webhook_router)
 api_router.include_router(dedup.router)
 
+# Include V1 routes (CRM, enrichment, pipeline, outreach, webhooks)
+try:
+    from src.api.v1.router import router as v1_router
+
+    api_router.include_router(v1_router)
+    logger.info("V1 API routes included (CRM, enrichment, pipeline, outreach, webhooks)")
+except ImportError:
+    logger.warning("V1 API routes not available — run install with src/ package")
+
 app.include_router(api_router)
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 
 @app.get("/")

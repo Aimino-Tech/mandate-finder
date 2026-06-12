@@ -1,3 +1,7 @@
+# DEPRECATED — Use mandate_finder.api.main instead.
+# This app is kept for backward compatibility but will be removed.
+# All routes have been consolidated into src/mandate_finder/api/main.py.
+
 from contextlib import asynccontextmanager
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler

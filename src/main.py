@@ -1,3 +1,7 @@
+# DEPRECATED — Use mandate_finder.api.main instead.
+# This app is kept for backward compatibility but will be removed.
+# All routes have been consolidated into src/mandate_finder/api/main.py.
+
 from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
