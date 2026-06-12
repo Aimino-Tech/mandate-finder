@@ -9,4 +9,5 @@ COPY src/ src/
 
 EXPOSE 8000
 
-CMD ["uvicorn", "mandate_finder.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENV PYTHONPATH=/app/src
+CMD ["uvicorn", "src.mandate_finder.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

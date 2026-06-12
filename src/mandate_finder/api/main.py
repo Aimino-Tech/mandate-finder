@@ -1,3 +1,10 @@
+"""Consolidated FastAPI application for Mandate Finder.
+
+This is the single source of truth for all API routes. All other
+app instances in the project tree are deprecated and should redirect
+here.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -5,10 +12,10 @@ import logging
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from mandate_finder.api.routes import ab_testing, auth, dedup, insights, users
-from mandate_finder.api.routes.billing import router as billing_router
-from mandate_finder.api.routes.stripe_webhook import router as stripe_webhook_router
-from mandate_finder.config import settings
+from src.mandate_finder.api.routes import ab_testing, auth, dedup, insights, users
+from src.mandate_finder.api.routes.billing import router as billing_router
+from src.mandate_finder.api.routes.stripe_webhook import router as stripe_webhook_router
+from src.mandate_finder.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +53,24 @@ try:
     logger.info("V1 API routes included (CRM, enrichment, pipeline, outreach, webhooks)")
 except ImportError:
     logger.warning("V1 API routes not available — run install with src/ package")
+
+# Include search profile routes (legacy module at mandate_finder/api/routes.py)
+try:
+    from src.mandate_finder.api.routes.search_profiles import router as search_profiles_router
+
+    api_router.include_router(search_profiles_router)
+    logger.info("Search profile routes included")
+except ImportError:
+    logger.warning("Search profile routes not available")
+
+# Include competitor insight routes (from src.api)
+try:
+    from src.api.routes.competitor import router as competitor_router
+
+    api_router.include_router(competitor_router)
+    logger.info("Competitor insight routes included")
+except ImportError:
+    logger.warning("Competitor insight routes not available")
 
 app.include_router(api_router)
 

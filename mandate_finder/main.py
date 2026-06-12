@@ -1,25 +1,18 @@
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+"""Compatibility shim — re-exports the consolidated FastAPI app.
 
-from fastapi import FastAPI
+The canonical application is in ``src/mandate_finder/api/main.py``.
+This module redirects there so that ``from mandate_finder.main import app``
+(used by some tooling) still works.
+"""
 
-from mandate_finder.api.routes import router
-from mandate_finder.db.base import Base
-from mandate_finder.db.session import engine
+from __future__ import annotations
 
+import warnings
 
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield
-    await engine.dispose()
+from src.mandate_finder.api.main import app  # noqa: F401
 
-
-app = FastAPI(
-    title="Mandate Finder — Multi-Profile Search Engine",
-    version="0.1.0",
-    lifespan=lifespan,
+warnings.warn(
+    "Import 'mandate_finder.main' is deprecated — use 'src.mandate_finder.api.main' instead.",
+    DeprecationWarning,
+    stacklevel=2,
 )
-
-app.include_router(router)

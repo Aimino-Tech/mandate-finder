@@ -20,7 +20,7 @@ typecheck:
 check: lint typecheck test
 
 run-api:
-	uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+	PYTHONPATH=src uvicorn src.mandate_finder.api.main:app --reload --host 0.0.0.0 --port 8000
 
 run-frontend:
 	cd frontend && npm install && npm run dev

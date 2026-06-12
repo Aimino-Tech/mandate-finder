@@ -1,48 +1,23 @@
-# DEPRECATED — Use mandate_finder.api.main instead.
-# This app is kept for backward compatibility but will be removed.
-# All routes have been consolidated into src/mandate_finder/api/main.py.
+"""
+DEPRECATED — Duplicate FastAPI application.
 
-from contextlib import asynccontextmanager
+This module defined a separate FastAPI app for competitor insights with
+its own /health endpoint, overlapping with the consolidated app in
+``src/mandate_finder/api/main.py``.
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import FastAPI
+All routes have been consolidated into ``src.mandate_finder.api.main``.
+"""
 
-from src.api.routes.competitor import router as competitor_router
-from src.db.database import async_session_factory
+from __future__ import annotations
 
-scheduler = AsyncIOScheduler()
+import warnings as _warnings
 
+from src.mandate_finder.api.main import app as _app
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    scheduler.add_job(
-        _run_aggregation,
-        "interval",
-        hours=6,
-        id="signal_aggregation",
-        replace_existing=True,
-    )
-    scheduler.start()
-    yield
-    scheduler.shutdown(wait=False)
+app = _app
 
-
-async def _run_aggregation():
-    from src.workers.signal_aggregator import aggregate_company_signals
-
-    async with async_session_factory() as session:
-        await aggregate_company_signals(session)
-
-
-app = FastAPI(
-    title="Mandate Finder — Competitor Insights API",
-    version="0.1.0",
-    lifespan=lifespan,
+_warnings.warn(
+    "Importing 'src.api.app' is deprecated. Use 'src.mandate_finder.api.main' instead.",
+    DeprecationWarning,
+    stacklevel=2,
 )
-
-app.include_router(competitor_router)
-
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
